@@ -1,0 +1,91 @@
+# ============================================================
+# FabriX-QA — .gitignore
+# ============================================================
+
+# ── Python ──────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyd
+*.pyo
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+*.whl
+
+# Virtual environments
+.venv/
+venv/
+env/
+.env.local
+
+# Pytest / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+
+# MyPy
+.mypy_cache/
+.dmypy.json
+
+# Ruff / Black cache
+.ruff_cache/
+
+# ── Node / Next.js ───────────────────────────────────────────
+node_modules/
+.next/
+out/
+.npm
+.eslintcache
+*.tsbuildinfo
+next-env.d.ts
+
+# ── Environment Files ────────────────────────────────────────
+.env
+.env.*
+!.env.example
+
+# ── AI / ML — Model Weights & Datasets ──────────────────────
+# Model weights (track via Git LFS or external registry instead)
+ai/models/*.pt
+ai/models/*.pth
+ai/models/*.onnx
+ai/models/*.tflite
+
+# Datasets (large binary data — never commit raw data)
+ai/datasets/raw/
+ai/datasets/processed/
+
+# YOLO training runs
+runs/
+
+# MLflow artifacts
+mlruns/
+mlartifacts/
+
+# ── Docker ───────────────────────────────────────────────────
+docker/postgres/data/
+docker/mongo/data/
+
+# ── IDE / OS ─────────────────────────────────────────────────
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── Logs ─────────────────────────────────────────────────────
+logs/
+*.log
+
+# ── Reports / Exports ────────────────────────────────────────
+reports/*.pdf
+reports/*.csv
+
+# ── Jupyter Notebooks ────────────────────────────────────────
+.ipynb_checkpoints/
