@@ -1,1 +1,1 @@
-# Pydantic v2 schemas for request/response validation
+# Purpose: define the package boundary for future Pydantic request and response schemas.

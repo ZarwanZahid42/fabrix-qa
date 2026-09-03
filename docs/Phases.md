@@ -1,126 +1,134 @@
-# FabriX-QA — Development Phases & Progress Tracker
+# FabriX-QA Development Phases
 
-> **Last Updated:** 2026-08-04  
-> **Current Phase:** Phase 0 — Foundation (Scaffolding Complete)
+**Last updated:** 2026-08-30
+**Current state:** Foundation scaffold complete; Phase 1 requirements/design work is next
+**Legend:** `[ ]` not complete, `[x]` complete
 
----
+A checkbox is complete only when its artifact exists, relevant verification passes, and Memory plus affected docs reflect reality.
 
-## How to Use This File
+## Foundation scaffold (completed)
 
-- `[ ]` = Not started
-- `[/]` = In progress
-- `[x]` = Complete
-- Update this file after every meaningful task completion.
+- [x] Create frontend, backend, AI, edge, Docker, and docs boundaries.
+- [x] Add minimal buildable Next.js and FastAPI entry points without product features.
+- [x] Add purpose-only placeholders for planned implementation modules.
+- [x] Pin current Python 3.12 backend and AI/CV dependencies.
+- [x] Add local PostgreSQL/MongoDB Docker Compose scaffold.
+- [x] Add comprehensive `.gitignore` and `.env.example`.
+- [x] Establish PRD, architecture, rules, phases, design, and memory baselines.
+- [x] Add and validate `.github/workflows/ci.yml` with passing Python 3.12 backend and Node.js 22 frontend checks on the feature branch.
 
----
+## External repository administration (manual follow-up)
 
-## Phase 0 — Foundation & Setup
-**Goal:** Project structure, tooling, documentation, and environment ready for development.
+- [ ] After the workflow is merged, configure GitHub rulesets for `main` and `dev` to require the exact `backend` and `frontend` checks. This must be done manually in GitHub settings and was not part of feature-branch scaffolding.
 
-- [x] Define project scope and requirements (PRD.md)
-- [x] Design system architecture (Architecture.md)
-- [x] Create full folder/file scaffold
-- [x] Generate backend requirements.txt with pinned versions
-- [x] Generate AI requirements.txt with pinned versions
-- [x] Create .gitignore (Python, Node, weights, datasets, env)
-- [x] Create .env.example with all required variables
-- [x] Create Docker Compose with Postgres, MongoDB, Redis services
-- [x] Create DB init scripts (postgres/init.sql, mongo/init.js)
-- [x] Write initial docs: PRD, Architecture, Rules, Phases, Design, Memory
-- [ ] Initialize Git repository + first commit
-- [ ] Configure pre-commit hooks (Black, Ruff, ESLint)
-- [ ] Set up Alembic for database migrations
+## Phase 1 — Requirements & Design
 
----
+**Goal:** remove product ambiguity before feature code and establish measurable acceptance criteria.
 
-## Phase 1 — Authentication & User Management
-**Goal:** Secure JWT-based RBAC fully operational. Users can log in with role-based access.
+- [ ] Interview/validate workflows with an operator, maintenance stakeholder, and manager proxy.
+- [ ] Select and cite the applicable four-point inspection standard or buyer specification.
+- [ ] Validate defect-size point rules, units, repeated/edge defect treatment, and maximum points.
+- [ ] Define configurable A/B/C/D thresholds separately from four-point scoring.
+- [ ] Define and validate the yield-loss formula and required production inputs.
+- [ ] Produce the complete Operator/Maintenance/Manager permission matrix.
+- [ ] Define roll, line, camera, inspection, event, alert, and audit lifecycle/state diagrams.
+- [ ] Finalize API and versioned WebSocket event contracts.
+- [ ] Finalize PostgreSQL entities and MongoDB media-document ownership/retention.
+- [ ] Decide JWT access/refresh/revocation approach and threat model.
+- [ ] Audit datasets for licensing, fabric relevance, class coverage, imbalance, and leakage risks.
+- [ ] Define annotation guidelines for hole, stain, weave error, and pattern break.
+- [ ] Establish train/validation/test split policy by roll/source.
+- [ ] Name evaluation hardware and set evidence-based accuracy/latency/FPS targets.
+- [ ] Create dashboard wireframes and conduct a short usability review.
+- [ ] Define automated test strategy, fixtures, coverage targets, and traceability matrix.
+- [ ] Review and approve PRD, Architecture, and Design baselines as a two-person team.
 
-- [ ] Implement User SQLAlchemy model (PostgreSQL)
-- [ ] Implement Alembic migration for users table
-- [ ] Implement POST /auth/login endpoint with bcrypt verification
-- [ ] Implement GET /auth/me endpoint
-- [ ] Implement get_current_user FastAPI dependency
-- [ ] Implement role-based access decorators (Operator / Maintenance / Manager)
-- [ ] Create seed script for default admin user
-- [ ] Build Login page (Next.js) with React Hook Form + Zod validation
-- [ ] Implement JWT storage in httpOnly cookie
-- [ ] Implement route guards on dashboard pages
-- [ ] Test: Unit tests for security.py functions
-- [ ] Test: Integration test for /auth/login happy path + invalid credentials
+**Exit gate:** requirements, scoring policy, contracts, data plan, wireframes, and measurable acceptance criteria are reviewed and no critical ambiguity blocks implementation.
 
----
+## Phase 2 — AI & Vision Development
 
-## Phase 2 — AI & Computer Vision Pipeline
-**Goal:** YOLOv8 model trained and inference pipeline running on fabric images.
+**Goal:** build and evaluate a reproducible offline computer-vision pipeline.
 
-- [ ] Download and prepare AITEX dataset (see ai/datasets/README.md)
-- [ ] Download and prepare NEU dataset
-- [ ] Run patch extractor (preprocessing/patch_extractor.py)
-- [ ] Define Albumentations augmentation pipeline (preprocessing/augmentation.py)
-- [ ] Create data.yaml for YOLO training
-- [ ] Train YOLOv8 baseline (training/train_yolo.py)
-- [ ] Evaluate baseline: mAP@0.5, confusion matrix
-- [ ] Log experiment to MLflow
-- [ ] Implement DefectDetector class (inference/defect_detector.py)
-- [ ] Train ResNet-50 classifier (training/train_classifier.py)
-- [ ] Implement HeatmapGenerator Grad-CAM (inference/heatmap_generator.py)
-- [ ] Train Autoencoder (training/train_autoencoder.py)
-- [ ] Integration test: End-to-end frame → DetectionResult pipeline
-- [ ] Save best model weights to ai/models/
+- [ ] Create licensed dataset manifests, checksums, attribution, and preparation instructions.
+- [ ] Implement annotation conversion and validation.
+- [ ] Implement ROI-aware preprocessing and Albumentations transforms.
+- [ ] Add deterministic split and leakage checks.
+- [ ] Train and tune a YOLOv8 baseline.
+- [ ] Select and train the CNN classifier architecture.
+- [ ] Train and calibrate the convolutional autoencoder anomaly model.
+- [ ] Select and validate the heatmap/localization method.
+- [ ] Define and calibrate detector/classifier/autoencoder fusion.
+- [ ] Implement typed inference result contracts and model provenance.
+- [ ] Evaluate per-class precision, recall, F1, mAP@0.5, mAP@0.5:0.95, confusion matrix, and calibration.
+- [ ] Evaluate anomaly detection separately with appropriate ROC/PR metrics.
+- [ ] Benchmark preprocessing/inference latency and throughput on named hardware.
+- [ ] Perform qualitative error analysis across fabrics, lighting, and defect sizes.
+- [ ] Freeze a reproducible candidate model bundle and document limitations.
 
----
+**Exit gate:** a versioned offline pipeline meets the approved evidence threshold without test-set leakage and can reproduce evaluation results from documented inputs.
 
-## Phase 3 — Edge Integration & Real-Time Pipeline
-**Goal:** Live camera frames flowing through AI pipeline and results persisted to databases.
+## Phase 3 — Edge & Logic Integration
 
-- [ ] Implement StreamHandler (edge/stream_handler.py)
-- [ ] Implement ROISelector with GUI + JSON persistence (edge/roi_selector.py)
-- [ ] Implement asyncio Queue between edge → AI inference
-- [ ] Implement DefectRecord persistence to PostgreSQL
-- [ ] Implement defect image + heatmap storage to MongoDB
-- [ ] Implement GradingEngine.compute_grade() (backend/services/grading_engine.py)
-- [ ] Implement GradingEngine.compute_yield_loss()
-- [ ] Implement automatic GradeRecord creation after inspection window
-- [ ] Implement WebSocket ConnectionManager (backend/websockets/defect_stream.py)
-- [ ] Wire AI output → WebSocket broadcast to frontend
-- [ ] End-to-end test: Camera → AI → DB → WebSocket
+**Goal:** process bounded live/recorded streams, persist evidence, and calculate auditable roll outcomes.
 
----
+- [ ] Implement source lifecycle, reconnect, timestamps, frame IDs, and bounded backpressure.
+- [ ] Implement ROI selection, validation, coordinate transforms, and persistence.
+- [ ] Integrate edge frames with the frozen inference contract.
+- [ ] Add PostgreSQL migrations and async persistence.
+- [ ] Add MongoDB media-document persistence and retention status.
+- [ ] Implement stable IDs, idempotent writes, partial-failure status, and reconciliation.
+- [ ] Implement versioned four-point score contributions and golden calculation tests.
+- [ ] Implement configurable A/B/C/D grade mapping and boundary tests.
+- [ ] Implement documented yield-loss calculation and validation.
+- [ ] Implement roll start/progress/completion lifecycle.
+- [ ] Implement JWT authentication and deny-by-default RBAC.
+- [ ] Implement versioned native WebSocket event envelopes and authenticated connections.
+- [ ] Implement alert policy evaluation, cooldown/deduplication, Twilio, and email adapters.
+- [ ] Add audit events for auth, policy, grade correction, user, and export actions.
+- [ ] Run camera/video → AI → both databases → grade → WebSocket integration tests.
+- [ ] Test camera, database, client, and notification failure recovery.
 
-## Phase 4 — Full-Stack Dashboard
-**Goal:** Production-ready dashboard with live feed, analytics, alerts, and reports.
+**Exit gate:** a representative stream produces traceable, deduplicated defect events and an auditable roll grade while recovering safely from tested failures.
 
-- [ ] Build Dashboard shell layout (sidebar, topbar, auth guard)
-- [ ] Build Overview page: live defect event feed (WebSocket consumer)
-- [ ] Build grade summary cards (A/B/C/D counts, trend)
-- [ ] Build defect heatmap visualization overlay
-- [ ] Build Reports page with Recharts: defect trend, grade distribution
-- [ ] Build date-range picker for report filtering
-- [ ] Implement PDF export (jsPDF or server-side)
-- [ ] Implement CSV export
-- [ ] Build Alerts page: alert log table + ack/dismiss
-- [ ] Implement NotificationService: Twilio SMS
-- [ ] Implement NotificationService: FastAPI-Mail email
-- [ ] Build Settings page: threshold configuration
-- [ ] Build User Management (Manager only): list/create/deactivate users
-- [ ] Implement GET /grading/history with pagination
-- [ ] Implement GET /reports/daily
-- [ ] Implement GET /reports/export
+## Phase 4 — Fullstack & Dashboard
 
----
+**Goal:** deliver the role-gated website workflow from live monitoring through reports.
 
-## Phase 5 — Testing, Hardening & Optimization
-**Goal:** System is stable, tested, performant, and deployment-ready.
+- [ ] Build accessible login/logout/session-expiry flows.
+- [ ] Build role-aware navigation backed by server authorization.
+- [ ] Build the operations overview and line/roll status.
+- [ ] Build live defect feed with heatmap/media inspection.
+- [ ] Handle connected, reconnecting, stale, disconnected, empty, loading, and error states.
+- [ ] Build four-point score, A/B/C/D grade, and yield-loss summaries with units/provenance.
+- [ ] Build Recharts grade, defect-rate/type, and yield-loss trends.
+- [ ] Build alert history, acknowledgement, and delivery-status workflows.
+- [ ] Build manager roll history, filters, report detail, and export.
+- [ ] Build authorized user/role and quality-policy administration.
+- [ ] Provide accessible table/text alternatives for important chart information.
+- [ ] Add frontend validation, typed API/event parsing, and safe error handling.
+- [ ] Add component, integration, and role-based end-to-end tests.
+- [ ] Conduct operator/maintenance/manager usability walkthroughs and record changes.
 
-- [ ] Backend: Achieve ≥ 70% test coverage on service layer
-- [ ] Frontend: Lighthouse score ≥ 90 on dashboard pages
-- [ ] AI: Model achieves ≥ 0.85 mAP@0.5 on test set
-- [ ] Load test: System handles 25 FPS sustained frame throughput
-- [ ] Security audit: Check all endpoints for missing auth guards
-- [ ] Docker production build: multi-stage Dockerfiles
-- [ ] Add nginx reverse proxy config
-- [ ] Add HTTPS / TLS config
-- [ ] Write final project documentation (separate from code docs)
-- [ ] Record demo video
-- [ ] Final FYP submission
+**Exit gate:** each role can complete approved website workflows with correct authorization, understandable live state, and accessible evidence.
+
+## Phase 5 — Testing & Optimization
+
+**Goal:** prove quality, harden deployment, and prepare an honest faculty demonstration.
+
+- [ ] Complete the requirements-to-test traceability matrix.
+- [ ] Pass backend Ruff, Black, pytest, migration, and security checks.
+- [ ] Pass frontend lint, production build, accessibility, and end-to-end checks.
+- [ ] Run full held-out AI evaluation and document confidence intervals/limitations.
+- [ ] Benchmark sustained end-to-end FPS, latency percentiles, CPU/GPU/RAM, and queue depth.
+- [ ] Optimize only measured bottlenecks and record before/after evidence.
+- [ ] Run RBAC, JWT, input-validation, secrets, dependency, and WebSocket security review.
+- [ ] Test notification retry/deduplication without sending from CI.
+- [ ] Test backup/restore and cross-store reconciliation.
+- [ ] Build production-ready immutable images, health checks, limits, TLS, and secret handling.
+- [ ] Test failure/recovery for camera, AI, PostgreSQL, MongoDB, providers, and browser reconnect.
+- [ ] Conduct final usability and faculty-demo rehearsals.
+- [ ] Produce final technical report, architecture diagrams, experiment appendix, user guide, and demo video.
+- [ ] Record known limitations, ethical considerations, and future work.
+- [ ] Merge through protected PRs only after one approval and passing CI.
+
+**Exit gate:** the reproducible release passes the agreed acceptance suite, deployment/recovery checks, and an evidence-based demonstration with no fabricated claims.

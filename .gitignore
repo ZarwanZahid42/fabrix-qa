@@ -1,76 +1,70 @@
-# ============================================================
-# FabriX-QA — .gitignore
-# ============================================================
-
-# ── Python ──────────────────────────────────────────────────
+# Python bytecode, builds, environments, and tool caches
 __pycache__/
 *.py[cod]
-*$py.class
 *.pyd
-*.pyo
-*.egg
+*.so
 *.egg-info/
-dist/
-build/
 .eggs/
-*.whl
-
-# Virtual environments
+build/
+dist/
 .venv/
 venv/
-env/
-.env.local
-
-# Pytest / coverage
 .pytest_cache/
 .coverage
-htmlcov/
+.coverage.*
 coverage.xml
-
-# MyPy
+htmlcov/
 .mypy_cache/
-.dmypy.json
-
-# Ruff / Black cache
 .ruff_cache/
 
-# ── Node / Next.js ───────────────────────────────────────────
+# Node.js and Next.js
 node_modules/
 .next/
 out/
-.npm
+coverage/
 .eslintcache
 *.tsbuildinfo
-next-env.d.ts
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
 
-# ── Environment Files ────────────────────────────────────────
+# Secrets and environment overrides
 .env
 .env.*
 !.env.example
+*.pem
+*.key
 
-# ── AI / ML — Model Weights & Datasets ──────────────────────
-# Model weights (track via Git LFS or external registry instead)
-ai/models/*.pt
-ai/models/*.pth
-ai/models/*.onnx
-ai/models/*.tflite
-
-# Datasets (large binary data — never commit raw data)
-ai/datasets/raw/
-ai/datasets/processed/
-
-# YOLO training runs
+# AI model artifacts and experiment outputs
+*.pt
+*.pth
+*.ckpt
+*.onnx
+*.engine
+*.tflite
+*.safetensors
 runs/
-
-# MLflow artifacts
+wandb/
 mlruns/
-mlartifacts/
 
-# ── Docker ───────────────────────────────────────────────────
+# Datasets: retain only documentation/manifests in source control
+ai/datasets/**
+!ai/datasets/README.md
+!ai/datasets/**/.gitkeep
+
+# Generated media, reports, and runtime state
+artifacts/
+uploads/
+heatmaps/
+reports/
+logs/
+*.log
 docker/postgres/data/
 docker/mongo/data/
 
-# ── IDE / OS ─────────────────────────────────────────────────
+# Notebooks, editors, and operating systems
+.ipynb_checkpoints/
 .idea/
 .vscode/
 *.swp
@@ -78,14 +72,3 @@ docker/mongo/data/
 .DS_Store
 Thumbs.db
 desktop.ini
-
-# ── Logs ─────────────────────────────────────────────────────
-logs/
-*.log
-
-# ── Reports / Exports ────────────────────────────────────────
-reports/*.pdf
-reports/*.csv
-
-# ── Jupyter Notebooks ────────────────────────────────────────
-.ipynb_checkpoints/

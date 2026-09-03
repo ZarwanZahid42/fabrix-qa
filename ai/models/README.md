@@ -1,17 +1,11 @@
-# Model Weights
+# Model artifact workspace
 
-> **These files are NOT committed to Git.**
-> Weights are tracked via Git LFS or stored in a shared model registry (MLflow).
+This directory documents model bundles; weights and generated artifacts are ignored by Git.
 
-## Model Files (expected)
+The planned pipeline requires three versioned artifacts:
 
-| File | Description | Size (approx) |
-|---|---|---|
-| `fabrix_yolo_best.pt` | Best YOLOv8 checkpoint from training | ~22 MB |
-| `fabrix_classifier_best.pth` | Best ResNet-50 classifier checkpoint | ~90 MB |
-| `fabrix_autoencoder_best.pth` | Trained autoencoder for anomaly detection | ~45 MB |
+- `yolov8_fabric_defects.pt` for detection;
+- `fabric_defect_classifier.pt` for four-class CNN classification;
+- `fabric_anomaly_autoencoder.pt` for anomaly scoring.
 
-## Download
-
-Weights will be hosted on the project's shared Google Drive / MLflow artifact store.
-Download instructions will be updated here once training runs are complete.
+No architecture, registry, weight file, accuracy, or artifact size has been selected or produced. A future bundle manifest must record training code revision, dataset/split version, preprocessing, class map, thresholds, metrics, framework versions, hardware, and a cryptographic checksum.

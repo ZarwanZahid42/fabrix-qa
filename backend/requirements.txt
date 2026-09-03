@@ -1,56 +1,35 @@
-# ============================================================
-# FabriX-QA Backend — Python Dependencies
-# Python 3.11+ required
-# Install: pip install -r requirements.txt
-# ============================================================
+# FabriX-QA backend dependencies (Python 3.12)
+# Pins verified against official PyPI metadata on 2026-08-29.
 
-# --- Web Framework ---
-fastapi==0.111.1
-uvicorn[standard]==0.30.1
-python-multipart==0.0.9
+# API and WebSocket server
+fastapi==0.141.1
+uvicorn[standard]==0.52.4
+python-multipart==0.0.32
 
-# --- Async Task Queue ---
-celery==5.4.0
-redis==5.0.7
+# PostgreSQL and migrations
+SQLAlchemy==2.0.52
+asyncpg==0.31.0
+alembic==1.19.1
 
-# --- Database (PostgreSQL) ---
-sqlalchemy==2.0.31
-asyncpg==0.29.0
-alembic==1.13.2
+# MongoDB (native async API; Motor is deprecated)
+pymongo==4.17.0
 
-# --- Database (MongoDB) ---
-motor==3.5.0
-pymongo==4.8.0
+# JWT authentication and password hashing
+PyJWT[crypto]==2.13.0
+pwdlib[argon2]==0.3.1
 
-# --- Authentication ---
-python-jose[cryptography]==3.3.0
-passlib[bcrypt]==1.7.4
+# Configuration and validation
+pydantic==2.13.5
+pydantic-settings==2.15.0
+python-dotenv==1.2.3
 
-# --- Settings ---
-pydantic==2.8.2
-pydantic-settings==2.3.4
-python-dotenv==1.0.1
+# Notifications
+twilio==9.11.0
+fastapi-mail==1.6.8
 
-# --- Email ---
-fastapi-mail==1.4.1
-
-# --- SMS ---
-twilio==9.2.3
-
-# --- Serialization / Validation ---
-orjson==3.10.6
-
-# --- HTTP Client (internal service calls) ---
-httpx==0.27.0
-
-# --- Logging ---
-loguru==0.7.2
-
-# --- Testing ---
-pytest==8.3.1
-pytest-asyncio==0.23.7
-httpx==0.27.0
-
-# --- Code Quality ---
-ruff==0.5.2
-black==24.4.2
+# Testing and CI quality checks
+httpx2==2.12.0
+pytest==9.1.1
+pytest-asyncio==1.4.0
+ruff==0.16.5
+black==26.5.1

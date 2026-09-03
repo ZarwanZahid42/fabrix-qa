@@ -1,11 +1,13 @@
-# Notebooks
+# Notebook workspace
 
-Experimental Jupyter notebooks. These are for exploration only — production code lives in `training/` and `inference/`.
+This directory is reserved for exploratory analysis and experiments. No notebook or experiment result exists yet.
 
-| Notebook | Purpose |
-|---|---|
-| 01_EDA.ipynb | Exploratory Data Analysis of AITEX + NEU datasets |
-| 02_baseline_classifier.ipynb | CNN baseline for defect classification |
-| 03_yolo_experiment.ipynb | YOLOv8 training experiment + mAP evaluation |
-| 04_autoencoder_anomaly.ipynb | Autoencoder-based anomaly detection exploration |
-| 05_heatmap_visualization.ipynb | Grad-CAM heatmap generation experiments |
+Notebook rules:
+
+- keep reusable logic in `preprocessing/`, `training/`, or `inference/`;
+- record seed, dataset/split version, environment, and hardware;
+- clear large outputs and never embed secrets, private data, or model weights;
+- label exploratory metrics as non-final;
+- avoid reading the held-out test set during tuning.
+
+Likely future studies include dataset audit, YOLOv8 baseline, CNN selection, autoencoder calibration, fusion analysis, and heatmap-method comparison. Exact notebooks follow Phase 1 decisions.

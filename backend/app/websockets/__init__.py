@@ -1,1 +1,1 @@
-# WebSocket handlers for live dashboard streaming
+# Purpose: define the package boundary for future native FastAPI WebSocket handlers.

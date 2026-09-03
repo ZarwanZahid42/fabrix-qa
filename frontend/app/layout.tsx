@@ -1,22 +1,22 @@
-import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
-import './globals.css';
+// Purpose: provide the minimum root layout required by the Next.js App Router scaffold.
 
-const inter = Inter({ subsets: ['latin'] });
+import type { Metadata } from "next";
+import type { ReactNode } from "react";
+import "./globals.css";
 
 export const metadata: Metadata = {
-  title: 'FabriX-QA | AI Fabric Quality Control',
-  description: 'AI-powered fabric defect detection and quality grading for the textile industry.',
+  title: "FabriX-QA",
+  description: "AI-powered fabric defect detection and quality grading.",
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+interface RootLayoutProps {
+  children: ReactNode;
+}
+
+export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="en">
-      <body className={inter.className}>{children}</body>
+      <body>{children}</body>
     </html>
   );
 }

@@ -1,1 +1,1 @@
-# Core package: config, security, database connections
+# Purpose: define the package boundary for configuration, security, and persistence foundations.

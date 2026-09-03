@@ -1,163 +1,139 @@
-# FabriX-QA — Coding Conventions & Agent Rules
+# FabriX-QA Engineering and Collaboration Rules
 
-> **Version:** 1.0 — Initial Scaffold  
-> **Last Updated:** 2026-08-04  
-> **This file is binding for all human developers and AI coding agents working on this codebase.**
+**Version:** 1.2
+**Binding for:** both student developers and every AI coding agent
+**Last updated:** 2026-09-03
 
----
+## 1. Mandatory session protocol
 
-## 1. General Principles
+### Before every task
 
-1. **Readability over cleverness.** Code is read 10× more than it is written. Prefer explicit over implicit.
-2. **Every module must have a purpose comment at the top.** No exceptions.
-3. **Never implement features not requested in the current task.** Scope creep introduces bugs.
-4. **Leave `TODO:` comments** for planned but not-yet-implemented logic. Never leave dead code silently.
-5. **All secrets come from `.env`.** Never hardcode credentials, tokens, or secrets.
+1. Read `docs/Memory.md` first. It is the single source of truth for what is built, decided, open, and known to be broken.
+2. Read the relevant sections of `docs/PRD.md`, `docs/Architecture.md`, `docs/Rules.md`, `docs/Phases.md`, and `docs/Design.md`.
+3. Inspect the current branch and working tree. Preserve unrelated human or agent changes.
+4. Confirm the requested work belongs to the active phase and does not contradict a recorded decision.
+5. Do not describe a placeholder, target design, or unchecked phase item as implemented.
 
----
+### After every task
 
-## 2. Folder & File Naming Rules
+1. Update `docs/Memory.md` with the date, what actually changed, decisions and rationale, verification performed, known issues, and next work.
+2. Update every affected living document among PRD, Architecture, Rules, Phases, and Design.
+3. Mark phase checkboxes complete only when implementation and appropriate verification are complete.
+4. Run checks proportional to the change and record any checks that could not run.
+5. Review the diff for secrets, generated artifacts, accidental scope changes, and inaccurate documentation.
 
-| Context | Convention | Example |
-|---|---|---|
-| Python files | `snake_case.py` | `grading_engine.py` |
-| Python classes | `PascalCase` | `GradingEngine` |
-| Python functions/vars | `snake_case` | `compute_grade()` |
-| TypeScript files | `camelCase.ts` or `PascalCase.tsx` for components | `apiClient.ts`, `GradeCard.tsx` |
-| Next.js pages | `page.tsx` inside route folder | `app/reports/page.tsx` |
-| Next.js components | `PascalCase.tsx` | `DefectFeedCard.tsx` |
-| CSS/Tailwind classes | Follow Tailwind naming; use `cn()` utility | `cn('flex', isActive && 'bg-brand-accent')` |
-| Environment variables | `SCREAMING_SNAKE_CASE` | `JWT_SECRET_KEY` |
-| Docker services | `lowercase_snake` | `fabrix_backend` |
-| Database tables | `snake_case` (plural) | `defect_records`, `grade_records` |
-| MongoDB collections | `snake_case` (plural) | `defect_images` |
-| Git branches | `type/short-description` | `feat/grading-engine` |
+This protocol is never optional, including for small fixes and documentation-only work.
 
----
+## 2. Git workflow and protected branches
 
-## 3. Python (Backend & AI)
+The established flow is:
 
-### 3.1 Style
-- Formatter: **Black** (line length: 100)
-- Linter: **Ruff** (replaces flake8 + isort + pyupgrade)
-- Type hints: **mandatory** on all function signatures
-- Docstrings: **Google style** for all public classes and functions
-
-### 3.2 FastAPI Conventions
-- All route handlers must be `async def`
-- Use Pydantic v2 `BaseModel` for all request/response schemas
-- Use `Annotated[..., Depends(...)]` dependency injection pattern
-- Return types must be explicitly declared on all route handlers
-- HTTP exceptions use `raise HTTPException(status_code=..., detail=...)`
-
-### 3.3 Database
-- All SQLAlchemy queries must be `async` (use `AsyncSession`)
-- Never use `session.query()` (legacy) — use `select()` statements
-- All database migrations via **Alembic** — never `Base.metadata.create_all()` in production
-- MongoDB operations via **Motor** async client only
-
-### 3.4 AI/CV Module
-- All model weights referenced by path from environment variable — never hardcoded
-- Inference functions must accept `np.ndarray` (BGR, HWC) and return typed dataclasses
-- Training scripts must log to MLflow: params, metrics, and model artifacts
-- Albumentations transforms defined in `preprocessing/augmentation.py` — never inline
-
----
-
-## 4. TypeScript / Next.js (Frontend)
-
-### 4.1 Style
-- Formatter: **Prettier** (default config)
-- Linter: **ESLint** with `next/core-web-vitals`
-- Strict TypeScript: `"strict": true` in `tsconfig.json`
-- No `any` types — use `unknown` + type guards if necessary
-
-### 4.2 Component Conventions
-- All React components: **functional components with explicit prop types**
-- Use `interface` for prop types (prefer over `type` for objects)
-- Co-locate component-specific types in the same file
-- Use `cn()` from `lib/utils.ts` for all conditional class merging
-
-### 4.3 State Management
-- Global state: **Zustand** stores in `lib/store/`
-- Server state / fetching: use **SWR** or direct `apiClient` with `useEffect`
-- Form state: **React Hook Form** + **Zod** validation schemas
-
-### 4.4 API Calls
-- All API calls go through `lib/api.ts` (axios instance with JWT interceptor)
-- Never call `fetch()` directly — always use the configured `apiClient`
-- WebSocket connections managed in `lib/websocket.ts`
-
----
-
-## 5. Git Commit Conventions
-
-Follow **Conventional Commits** spec: `type(scope): description`
-
-| Type | When to Use |
-|---|---|
-| `feat` | New feature |
-| `fix` | Bug fix |
-| `docs` | Documentation changes |
-| `chore` | Build, tooling, deps — no prod code change |
-| `refactor` | Code restructure (no behavior change) |
-| `test` | Adding or fixing tests |
-| `perf` | Performance improvement |
-| `ci` | CI/CD pipeline changes |
-
-**Examples:**
-```
-feat(grading): implement grade A/B/C/D computation logic
-fix(auth): resolve JWT expiry not being checked on refresh
-docs(memory): update Memory.md after grading engine completion
-chore(deps): bump ultralytics to 8.2.56
+```text
+features/zarwan ─┐
+                 ├─> dev ─> main
+features/kaynat ─┘
 ```
 
----
+- All scaffolding and implementation work occurs on the currently checked-out feature branch.
+- `main` and `dev` are protected.
+- Never commit or push directly to `main` or `dev`.
+- Never force-push protected branches. Do not rewrite shared history.
+- Merge feature branches into `dev` through a pull request.
+- Merge `dev` into `main` through a pull request.
+- Every protected-branch PR requires at least one approval and passing CI.
+- CI is expected at `.github/workflows/ci.yml`: Ruff, Black, and pytest for the backend; lint and build for the frontend.
+- Do not weaken branch protection, bypass CI, dismiss reviews, or change this workflow without explicit team agreement.
+- Rebase/merge conflict resolution must preserve the other teammate's work.
+- Use small, reviewable commits following Conventional Commits, for example `feat(grading): add four-point calculation` or `docs(memory): record scoring decision`.
+- Never commit secrets, local datasets, model weights, generated heatmaps, database volumes, or `.env`.
 
-## 6. Testing Rules
+If the documented CI file or protection state is not visible locally, record the discrepancy; do not invent or alter protection settings.
 
-- All backend services must have unit tests in `backend/tests/`
-- Use `pytest` + `pytest-asyncio` for async tests
-- Minimum coverage target: **70%** for service layer
-- Frontend: component tests with **React Testing Library** (future)
-- AI module: training scripts must log validation mAP per epoch
-- Never merge code that breaks existing tests
+## 3. Scope and decision discipline
 
----
+- Implement only the requested phase/task. A clean scaffold is not permission to implement features.
+- Prefer the smallest design that satisfies a two-person FYP team and a website-only product.
+- FastAPI is the single backend. Do not introduce a Node.js API, microservice split, queue, cache, or new database without evidence, team approval, and updated architecture.
+- New dependencies require a concrete need, compatibility verification, exact pinning, and a Memory/Architecture entry.
+- Before adding or changing a Python dependency, run `python -m pip show <package>` in the target environment or inspect the package's canonical PyPI page to confirm its distribution name, import name, and purpose. Also check the consuming framework's exact-version documentation, optional requirements, and relevant source/runtime imports. Installation success alone is insufficient; different distribution/import names or an empty `Required-by` field do not prove a package is wrong or unused.
+- For this project's currently resolved Starlette 1.6.0, `httpx2==2.12.0` is the verified TestClient dependency; the earlier claim that HTTPX2 was unrelated was incorrect. Reassess against upstream evidence when upgrading Starlette. FastAPI-Mail 1.6.8 separately requires `httpx>=0.28.1`, so both distributions are expected in the backend environment. See Memory's 2026-09-03 verification record and source link.
+- Product thresholds must come from data, a named specification, buyer policy, or domain-expert validation. Never invent four-point grade or yield-loss thresholds and present them as facts.
+- Architectural uncertainty is recorded as an open decision, not silently resolved.
+- Human corrections and policy changes must be auditable; never erase original AI/scoring results.
 
-## 7. AI Agent Rules (CRITICAL — READ FIRST)
+## 4. Python standards
 
-> These rules apply to any AI coding assistant (Claude, Gemini, Copilot, etc.) working on this codebase.
+- Runtime baseline: Python 3.12.
+- Format with Black; lint with Ruff; test with pytest and pytest-asyncio.
+- Use type hints on public functions, methods, and boundary data.
+- Use Pydantic v2 models at API/event boundaries.
+- Keep FastAPI route handlers thin; business logic belongs in services.
+- Use async I/O for database, WebSocket, and provider operations; do not label CPU-heavy inference async and then block the event loop.
+- Use SQLAlchemy 2.x patterns and Alembic for every PostgreSQL schema change.
+- Use PyMongo's native async API for new MongoDB code; do not introduce Motor.
+- Catch specific exceptions, log actionable context without secrets, and preserve causal exceptions.
+- Add deterministic unit tests for grading, conversions, thresholds, and RBAC boundaries.
+- AI experiments must record seed, dataset/split version, transforms, weights/config, package versions, hardware, metrics, and artifact hashes.
 
-### 7.1 Before Starting Any Task
-1. **Read `docs/Memory.md` first.** It is the authoritative record of what has been built and what decisions were made. Do not assume — read it.
-2. **Read the relevant module documentation** in `docs/Architecture.md` before touching any module.
-3. **Check `docs/Phases.md`** to understand what phase is currently active and what is in scope.
+## 5. TypeScript and website standards
 
-### 7.2 Scope Control
-- **Only implement what is explicitly requested.** Do not add unrequested features, refactors, or "improvements."
-- If you notice a bug or issue outside your task scope, document it in `Memory.md` as a known issue — do not fix it unsolicited.
-- **Ask before making architectural decisions.** If the task requires a design decision not covered in `Architecture.md`, stop and ask.
+- Runtime baseline: Node.js 22; strict TypeScript is mandatory.
+- Use the Next.js App Router, React functional components, Tailwind CSS, and Recharts.
+- Do not add a second backend or Socket.IO; use browser-native WebSockets with FastAPI.
+- Treat backend authorization as authoritative. Hidden controls are not access control.
+- Avoid `any`; validate unknown network data before use.
+- Keep server-only secrets and provider credentials out of `NEXT_PUBLIC_*` variables.
+- Every live view must define loading, disconnected, stale, empty, error, and reconnecting states.
+- Charts require accessible titles/labels, units, legends, tooltips, and a non-chart summary or table where needed.
+- The product is desktop/factory-monitor focused, not a mobile application; reasonable browser resizing must still fail gracefully.
 
-### 7.3 After Completing Any Task
-1. **Update `docs/Memory.md`** with:
-   - What was built
-   - What decisions were made and why
-   - What TODOs remain
-   - Any known issues discovered
-2. **Update the relevant doc file** if the implementation changes or extends the architecture.
-3. **Update `docs/Phases.md`** — check off completed items.
-4. **Run linting and tests** before declaring a task complete.
+## 6. AI, data, and grading standards
 
-### 7.4 Code Style Compliance
-- Follow all conventions in Sections 2–6 of this document
-- Never introduce new dependencies without documenting them in `Memory.md`
-- Always add type hints, docstrings, and module-level purpose comments
+- Raw datasets and model weights stay out of Git. Commit manifests, licenses/attribution, checksums, class maps, and preparation instructions.
+- Split data by source/roll where possible to prevent near-duplicate frame leakage.
+- Never evaluate on the training set or tune against the final test set.
+- Report per-class precision, recall, F1, confusion matrix, mAP, latency, and hardware; report anomaly metrics separately.
+- Preserve coordinate transforms from source frame to ROI/model/image/heatmap spaces.
+- Version and test four-point rules independently of model confidence.
+- Four-point points, A/B/C/D mapping, and yield-loss estimation are distinct concepts. Do not conflate them.
+- Retain model and rule provenance for every computed roll result.
+- Use synthetic or licensed data only; document dataset rights and retention.
 
-### 7.5 Prohibited Actions
-- ❌ Never delete or overwrite files without explicit instruction
-- ❌ Never commit or push to `main` directly
-- ❌ Never hardcode secrets, credentials, or IPs
-- ❌ Never bypass existing tests or skip linting
-- ❌ Never modify `docs/Memory.md` destructively — always append
+## 7. Databases and cross-store consistency
+
+- PostgreSQL owns structured identities and audited business state.
+- MongoDB owns defect-media documents/metadata linked by stable IDs.
+- Do not rely on cross-database transactions. Use idempotency, explicit status, retry, and reconciliation.
+- Database schemas change only through reviewed migrations/init revisions.
+- Store timestamps in UTC and render the user's timezone at presentation boundaries.
+- Define indexes from measured query patterns, not guesses.
+- Never store plaintext passwords, JWTs, Twilio tokens, SMTP passwords, or unnecessary personal data.
+
+## 8. Security and notifications
+
+- Deny access by default and test the entire role-permission matrix.
+- Hash passwords using an approved adaptive algorithm; the current dependency choice is Argon2 via `pwdlib`.
+- Validate JWT issuer/audience/expiry and WebSocket authorization when implemented.
+- Apply rate/size limits at trust boundaries.
+- Notification delivery must be non-blocking, deduplicated, retry-aware, and auditable.
+- Use provider test credentials/fakes in automated tests; never send real alerts from CI.
+- Production-like deployment requires TLS, secret management, backups, and restore testing.
+
+## 9. Documentation and code quality
+
+- Every source module begins with a concise purpose comment/docstring.
+- Comments explain intent, constraints, or non-obvious reasoning—not line-by-line mechanics.
+- Public behavior requires tests and updated docs.
+- Use UTF-8, consistent names, and small cohesive modules.
+- Do not leave dead code, fabricated metrics, or TODOs without an owner/phase.
+- A task is complete only when code, tests, and living docs agree with the real repository state.
+
+## 10. Prohibited actions
+
+- Direct or force pushes to `main`/`dev`.
+- Branch-protection or CI bypass.
+- Committing credentials, datasets, model weights, runtime media, or generated database data.
+- Silent dependency or architecture expansion.
+- Claims that unmeasured accuracy/performance has been achieved.
+- Destructive editing of another teammate's unrelated work.
+- Skipping the Memory-first and Memory-last protocol.
