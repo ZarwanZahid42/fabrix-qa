@@ -1,8 +1,8 @@
 # FabriX-QA Product Requirements Document
 
 **Version:** 1.0
-**Status:** Foundation approved; implementation not started
-**Last updated:** 2026-08-29
+**Status:** Foundation complete; offline dataset preparation authorized; product features not implemented
+**Last updated:** 2026-09-05
 **Team:** Two-person final-year-project team
 **Product form:** Website only; no mobile application
 
@@ -133,7 +133,7 @@ The FYP is acceptable when a reproducible demo processes representative fabric v
 
 ## 10. Open product decisions
 
-- Dataset sources, licensing, class balance, and annotation protocol.
+- Dataset preparation now covers rmshashi, AITEX, TILDA-400, ZJU-Leaper and MVTec carpet/grid under the academic-use decisions in `ai/datasets/README.md`. ZJU is anomaly-only. The semantic preparation taxonomy adds foreign_object, crease and edge_damage; their product handling remains open. TILDA supplies stain examples. Weak localization, fine-defect resolution, incomplete source license/version records, and unseen-roll evaluation remain limitations to address before detection-quality claims.
 - Selected four-point standard/buyer specification and exact size/grade/yield thresholds.
 - Camera, lighting, line speed, fabric width, and evaluation hardware.
 - CNN architecture and detector/classifier/autoencoder fusion policy.

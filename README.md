@@ -2,7 +2,7 @@
 
 FabriX-QA is a website-based final-year project for AI-assisted textile inspection. The planned system processes fabric video frame by frame, detects defects with YOLOv8, classifies holes/stains/weave errors/pattern breaks with a CNN, flags anomalies with an autoencoder, generates localization heatmaps, calculates an auditable four-point roll score and A/B/C/D grade, estimates yield loss, streams live evidence to a role-gated dashboard, and sends SMS/email alerts.
 
-**Current status:** foundation scaffold only. Product features and AI models are not implemented.
+**Current status:** foundation scaffold plus offline dataset preprocessing. Product features and trained AI models are not implemented. See `docs/Memory.md` for verification status and `ai/datasets/README.md` for the real data inventory, mappings, build commands and limitations.
 
 ## Technology baseline
 
@@ -133,6 +133,13 @@ python -m pip install -r requirements.txt
 ```
 
 For GPU use, choose the correct PyTorch/CUDA installation for the exact evaluation machine and record it in Memory. Dataset files and model weights are intentionally ignored.
+
+The preprocessing workflow builds separate multiclass YOLO and ZJU anomaly
+datasets from five local sources. Its build/verification commands and academic
+attribution references are in `ai/datasets/README.md`. ZJU is excluded from
+multiclass training; normal-only and strong-localization manifests support the
+corresponding training/evaluation paths. No training runs are performed by the
+dataset builder.
 
 ### Docker Compose
 

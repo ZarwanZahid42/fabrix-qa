@@ -1,8 +1,8 @@
 # FabriX-QA Architecture
 
-**Version:** 1.0
-**State:** Target architecture; only foundation scaffold exists
-**Last updated:** 2026-08-29
+**Version:** 1.2
+**State:** Target product architecture; foundation and offline dataset preprocessing code exist
+**Last updated:** 2026-09-05
 
 ## 1. Architectural principles
 
@@ -55,11 +55,11 @@ The edge and AI modules may initially run in the same Python process/environment
 | `backend/app/schemas/` | Pydantic boundary contracts | Purpose-only placeholders |
 | `backend/app/services/` | Grading, yield, notifications, reports | Purpose-only placeholders |
 | `backend/app/websockets/` | Authenticated live-event connections | Purpose-only placeholders |
-| `ai/datasets/` | Dataset instructions/manifests; raw data is ignored | Documentation only |
+| `ai/datasets/` | Dataset instructions/manifests; raw and processed data are ignored | Five local sources audited; separate semantic and anomaly outputs |
 | `ai/training/` | Reproducible model training entry points | Purpose-only placeholders |
 | `ai/inference/` | Unified inference and heatmap generation | Purpose-only placeholders |
 | `ai/models/` | Model documentation; weights are ignored | Documentation only |
-| `ai/preprocessing/` | Data/ROI transformations and augmentation | Purpose-only placeholders |
+| `ai/preprocessing/` | Offline annotation conversion, letterboxing, augmentation and verification | Dataset builder and regression tests; live ROI integration remains a placeholder |
 | `edge/` | Camera streaming and ROI selection | Purpose-only placeholders |
 | `docker/` | Local Compose topology and database init hooks | Infrastructure scaffold |
 | `docs/` | Living product, architecture, rules, phases, design, memory | Initial baseline |
@@ -82,6 +82,41 @@ A frame contract should contain frame ID, capture time, line/camera/roll IDs, RO
 - model names, weight hashes/versions, preprocessing version, and device.
 
 The CNN architecture, heatmap technique, and fusion rule remain open until dataset experiments. Training and inference transforms must share a versioned contract.
+
+### 4.2.1 Implemented offline dataset preparation
+
+The user authorized dataset preparation before the rest of Requirements & Design
+is complete. `ai/preprocessing/build_dataset.py` reads the five actual local
+sources, validates and hashes source pixels/annotations, groups exact duplicates
+before an 80/10/10 source-image split, prepares 640x640 inputs and applies seeded
+training-only Albumentations transforms. AITEX alone uses native 256x256 tiles
+with stride 192, positive-mask coverage and capped sampled backgrounds. Tile
+coordinates and copies inherit the strip's split; other sources retain their
+existing full-image transforms. This is offline tooling, not live inference.
+
+`processed/data.yaml` serves the semantic detector (rmshashi, AITEX, TILDA,
+MVTec carpet/grid). `processed/anomaly/data.yaml` serves ZJU binary localization;
+ZJU is excluded from semantic detector/classifier training. Normal-only manifests
+select ZJU autoencoder training samples. Semantic classification manifests retain
+AITEX's two positive samples with unavailable localization. Strong-only lists
+exclude weak rmshashi boxes for separate detector evaluation.
+
+Stable taxonomy, original source labels, researched mappings, annotation repair
+decisions and output verification are documented in `ai/datasets/README.md`.
+The dataset taxonomy includes foreign_object, crease and edge_damage alongside
+the four product categories; no automatic production grading policy for these
+extra categories is implemented. MVTec pattern_break is a texture-anomaly proxy.
+Raw SHA-256, decoded-pixel SHA-256, annotation hashes, native split metadata,
+parent IDs, split membership, transforms and augmentation seeds remain in the
+ignored manifests. No raw data or models are committed.
+
+Exact duplicate isolation does not prove unseen-roll generalization. Custom
+splits are not official ZJU/MVTec benchmark splits. Full-image rmshashi labels
+are weak localization. AITEX tiling now avoids full-strip detail loss, but
+overlapping tiles are correlated, rare classes remain sparse, and curated
+negative sampling changes evaluation prevalence. These limitations must inform
+subsequent training experiments and reported metrics; tiling is not a measured
+accuracy improvement yet.
 
 ### 4.3 FastAPI backend
 

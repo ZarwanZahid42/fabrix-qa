@@ -1,7 +1,7 @@
 # FabriX-QA Development Phases
 
-**Last updated:** 2026-08-30
-**Current state:** Foundation scaffold complete; Phase 1 requirements/design work is next
+**Last updated:** 2026-09-05
+**Current state:** Foundation and targeted Phase 2 offline data preparation complete; Phase 1 product decisions and model training remain open
 **Legend:** `[ ]` not complete, `[x]` complete
 
 A checkbox is complete only when its artifact exists, relevant verification passes, and Memory plus affected docs reflect reality.
@@ -35,9 +35,11 @@ A checkbox is complete only when its artifact exists, relevant verification pass
 - [ ] Finalize API and versioned WebSocket event contracts.
 - [ ] Finalize PostgreSQL entities and MongoDB media-document ownership/retention.
 - [ ] Decide JWT access/refresh/revocation approach and threat model.
-- [ ] Audit datasets for licensing, fabric relevance, class coverage, imbalance, and leakage risks.
+- [x] Audit the five local datasets for licensing evidence/gaps, fabric relevance, class coverage, imbalance, and exact-duplicate leakage risks; record the authorized academic-use scope in the dataset README.
+- [ ] Archive missing source license/download-version evidence; validate near-duplicate and unseen-roll evaluation policy before model-quality claims.
 - [ ] Define annotation guidelines for hole, stain, weave error, and pattern break.
-- [ ] Establish train/validation/test split policy by roll/source.
+- [x] Implement the authorized source-image 80/10/10 split, with exact duplicates grouped and augmentation confined to training.
+- [ ] Establish stronger roll/source-held-out evaluation where provenance permits; the current image split does not prove unseen-roll generalization.
 - [ ] Name evaluation hardware and set evidence-based accuracy/latency/FPS targets.
 - [ ] Create dashboard wireframes and conduct a short usability review.
 - [ ] Define automated test strategy, fixtures, coverage targets, and traceability matrix.
@@ -49,10 +51,15 @@ A checkbox is complete only when its artifact exists, relevant verification pass
 
 **Goal:** build and evaluate a reproducible offline computer-vision pipeline.
 
-- [ ] Create licensed dataset manifests, checksums, attribution, and preparation instructions.
-- [ ] Implement annotation conversion and validation.
-- [ ] Implement ROI-aware preprocessing and Albumentations transforms.
-- [ ] Add deterministic split and leakage checks.
+- [x] Create source/output manifests, checksums, researched taxonomy, attribution references, documented rights gaps, and reproducible preparation instructions for the approved academic dataset copies.
+- [ ] Complete source license/version archival; do not infer commercial rights from preprocessing approval.
+- [x] Implement annotation conversion and validation, including source-specific mask handling and documented TILDA reconciliation.
+- [x] Implement offline 640x640 letterboxing and synchronized Albumentations transforms; preserve thin positive masks during downsampling.
+- [x] Implement and validate AITEX-only 256x256 overlapping tiles, source-grouped splits, mask-derived local boxes and capped background sampling; retain unknown-localization strips as classification-only.
+- [ ] Implement live ROI integration and evaluate the tiled input protocol's accuracy before making model-quality claims.
+- [x] Add deterministic source-image splits and exact-duplicate/parent leakage checks.
+- [x] Initial build: decode and validate 156,305 generated images/labels/masks, inspect 25 source examples, run nine regression tests, and load both dataset configurations with Ultralytics (complete semantic scan, bounded binary loader smoke test). See Memory for the subsequent AITEX tiling build and current counts.
+- [x] AITEX tiling follow-up: rebuild only AITEX to 530 outputs, verify unchanged other-source outputs, recheck all 156,371 active images/labels/masks, inspect five tiled AITEX examples, pass 12 regression tests and updated Ultralytics loading. Eight pre-existing TILDA subpixel boxes remain documented and unchanged; no accuracy claim is implied.
 - [ ] Train and tune a YOLOv8 baseline.
 - [ ] Select and train the CNN classifier architecture.
 - [ ] Train and calibrate the convolutional autoencoder anomaly model.

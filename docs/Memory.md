@@ -8,14 +8,14 @@
 
 | Field | Value |
 |---|---|
-| Date | 2026-09-03 |
+| Date | 2026-09-05 |
 | Branch observed | `features/zarwan` tracking `origin/features/zarwan` |
-| Active stage | Foundation scaffold complete |
-| Product implementation | Not started |
-| Next phase | Requirements & Design |
+| Active stage | Foundation and targeted Phase 2 offline dataset preparation complete; Phase 1 product decisions remain open |
+| Product implementation | Offline preprocessing and output verification complete; website/AI inference features not started |
+| Next task | Define a strong-label detector baseline/evaluation protocol using the verified AITEX tiles; remaining Requirements & Design decisions stay open |
 | Team/product constraint | Two-person student team; website only; one FastAPI backend |
 
-The repository contains a minimal buildable Next.js shell, a FastAPI health bootstrap with one real smoke test, local Docker Compose topology, pinned requirements, purpose-only feature placeholders, and the six living documentation files. It does **not** contain authentication, database models/migrations, inference, edge capture, scoring, grading, alerts, reports, dashboard features, or tests for those product features.
+The repository contains a minimal buildable Next.js shell, a FastAPI health bootstrap with one real smoke test, local Docker Compose topology, pinned requirements, an offline dataset preprocessing pipeline with regression tests, purpose-only product-feature placeholders, and six living documentation files. It does **not** contain authentication, database models/migrations, inference, edge capture, scoring, grading, alerts, reports, dashboard features, or tests for those product features.
 
 ## What is built now
 
@@ -51,11 +51,11 @@ The repository contains a minimal buildable Next.js shell, a FastAPI health boot
 ### AI and edge
 
 - AI directories exist for datasets, notebooks, training, inference, models, and preprocessing.
-- `ai/venv` is a separate local Python 3.12.13 environment with the complete pinned AI/CV stack installed and `pip check` passing. It is ignored by Git.
+- `ai/venv` is a separate local Python 3.12 environment with the complete pinned AI/CV stack installed and `pip check` passing. The 2026-09-05 run reports Python 3.12.14; prior setup verification reported 3.12.13. This task did not install or upgrade dependencies or runtimes. The environment is ignored by Git.
 - The default Windows/PyPI install was verified as CPU-only: PyTorch `2.13.0+cpu`, torchvision `0.28.0+cpu`, `torch.version.cuda is None`, and CUDA is unavailable. OpenCV 5.0.0, Ultralytics 8.4.133, and Albumentations 2.0.8 import together.
-- Training/inference/preprocessing Python files are purpose-only comments.
+- Training/inference modules and live ROI patch extraction remain placeholders. Offline `ai/preprocessing/build_dataset.py`, its tests, annotation inspection and Ultralytics load verification tools now exist.
 - Edge stream and ROI files are purpose-only comments.
-- No datasets, weights, training runs, model architectures, scoring logic, or frame processing exists.
+- Five local raw datasets contain 96,885 training candidate source images (plus two excluded TILDA reference images). The current AITEX-tiled build contains 156,371 images: 4,635 semantic detector images, 151,734 unchanged ZJU anomaly images and two classification-only positives. AITEX has 530 outputs (528 detector tiles/copies plus two untiled classification-only strips), replacing its previous 464 full-strip outputs. All raw/generated payloads and the recoverable pre-tiling archive remain ignored by Git. No model weights, training runs, scoring logic or live frame processing exist.
 
 ### Documentation
 
@@ -91,17 +91,63 @@ The AI environment uses the standard PyPI PyTorch distribution, which installed 
 
 ## Open decisions / next work
 
-The next task should remain in **Requirements & Design**:
+Zarwan explicitly authorized offline dataset preparation ahead of completing the
+remaining **Requirements & Design** decisions. That scoped task is now verified.
+AITEX tiling is now implemented with fixed source-image split groups. The next AI
+task is to define the strong-label baseline and evaluation protocol, then measure
+the tiled inputs' model accuracy without tuning on the final test split. Do not
+treat overlapping tiles as independent evidence or weak full-frame labels as
+precise localization ground truth. The following product decisions remain open:
 
 1. Select/cite the actual four-point standard or buyer specification and validate size/point rules.
 2. Define A/B/C/D and yield-loss policies with domain input.
 3. Produce the complete role-permission matrix and user workflows.
-4. Audit dataset licensing, labels, class balance, and leakage risk.
+4. Review the documented dataset limitations, missing source license/version records, and unseen-roll evaluation policy before model claims.
 5. Choose evaluation hardware and measurable targets.
 6. Finalize data contracts, schemas, state lifecycles, WebSocket envelope, and security/session model.
 7. Create/test dashboard wireframes before implementing pages.
 
-Do not start feature implementation merely because placeholder modules exist.
+Do not start unrelated feature implementation merely because placeholder modules exist.
+
+## Initial dataset preparation (2026-09-05, pre-tiling baseline)
+
+The counts and AITEX full-strip limitations in this historical record describe
+the initial build. The subsequent AITEX-only tiling entry below supersedes them;
+the other four sources' processing is unchanged.
+
+- The earlier blocked inspection did not write a manifest. This session resumed under explicit user rules permitting researched mappings, named fallback buckets, academic preprocessing despite missing bundled licenses, actual rmshashi folder labels, AITEX multi-mask OR/classification-only exceptions, and ZJU anomaly-only scope.
+- **Resolved via documented dataset research:** AITEX code names come from the original Silvestre-Blanes et al. paper, Table 1. Project merges codes 002 broken_end, 006 broken_yarn, 010 broken_pick, 016 weft_curling, 019 fuzzy_ball, 025 warp_ball, 027 knots, 030 nep and 036 weft_crack into weave_error; 022 cut_selvage becomes edge_damage; 023 crease stays crease; 029 contamination becomes foreign_object. Research establishes the original names; broad merges are project decisions, not claims from the paper.
+- **Resolved via documented dataset research:** TILDA-400 publisher IDs 0 hole, 1 foreign object/contamination, 2 oil stain, 3 thread-related defect map to hole, foreign_object, stain, weave_error. The publisher describes these names as an interpretation of original error codes, not an authoritative German class dictionary. Actual local input is 400 full-size 768x512 images, 100 per class, not 64x64 patches or a five-class normal-heavy dataset. Thus stain has 100 source examples.
+- **User-resolved folder taxonomy:** rmshashi hole and captured/Hole merge into hole; horizontal, verticle and captured/Lines merge into weave_error. Normalize the source label verticle to vertical without renaming raw paths. No normal or stain source class exists. Full-image boxes are explicitly weak supervision. Captured/top-level overlap remains a caution, not an assumption of independence.
+- **Track scope:** ZJU's 94,833 images are binary anomaly data only, excluded from semantic detector and classifier manifests. Normal-only train lists support future autoencoder training. MVTec carpet/grid subtypes all map to pattern_break as a coarse texture-anomaly proxy while preserving their actual subtype; this is not a claim that metal/glue/cuts are physically equivalent.
+- **Unmapped/bucketed:** zero observed AITEX/TILDA samples. Stable IDs 7/8 reserve aitex_unmapped/tilda_unmapped for future unknown codes. Full source URLs, names, counts and rights evidence are in `ai/datasets/README.md`. Missing bundled rmshashi/AITEX/TILDA licenses are recorded gaps; proceed under Zarwan's explicit academic-use vetting, without asserting commercial rights or inventing download versions.
+- Complete input audit decoded and hashed 96,885 images. It found 13 exact duplicate pairs, all rmshashi, with no label conflicts; duplicate groups share splits.
+- Technical corrections: fixed the CLI's dataset-root path; OR-combined multiple AITEX masks for 0044_019_04 and 0097_030_03 before component extraction; treated the all-zero 0106_010_03 mask like known maskless 0100_025_08 (two weave_error classification-only positives, excluded from detection); clipped two TILDA decimal-rounding edge overshoots under 0.001 pixel.
+- Visual review found truncated TILDA thread boxes and one plausible boundary-hole box absent from its mask. Reconciliation conservatively expands boxes to their linked mask regions, adds uncovered mask components using the sole image class, and retains unmasked supplied boxes. Raw annotations and their hashes are preserved.
+- TILDA reconciliation expanded 245 boxes, added two uncovered components and preserved one supplied box without mask overlap. Its 514 original supplied boxes become 516 reconciled boxes, with originals and repair metadata retained.
+- Full-output verification initially exposed 23 masks erased by nearest-neighbor downsampling. Area-occupancy downsampling now preserves thin positive masks, with a single-pixel regression test; the final complete recheck reports **zero erased masks**. Exact subpixel boxes are retained (89 boxes have a dimension below one pixel). This fixes annotation loss, not image-resolution loss. Ultralytics config-directory fallback was also corrected so tool caches stay under ignored processed/_toolcache.
+- **Measured final outputs:** 156,305 images = 96,885 originals + 59,420 train-only augmented copies. Semantic detector train/val/test: 4,159/204/206; ZJU anomaly: 132,766/9,484/9,484; classification-only: 2/0/0. Generated artifacts occupy approximately 20.88 GB logical size (including masks, labels and manifests). Per-source totals: rmshashi 1,425; AITEX 464; TILDA 1,120; MVTec 1,562; ZJU 151,734. Per-class/per-split tables live in the dataset README and verification.json.
+- Implemented `build_dataset.py`, nine regression tests, `inspect_annotations.py`, and `verify_ultralytics.py`. The builder preserves source hashes, coordinates, original labels, native split metadata and augmentation parent/seed lineage. Seed 42, source-image 80/10/10 with grouped decoded duplicates, and train-only augmentation. Custom splits replace native benchmark splits; no official benchmark or unseen-roll claim is justified.
+- **Verification passed:** all 156,305 output images independently decoded; matching labels/masks, class ranges, nonempty positive splits, mask/box geometry, exact source accounting and no held-out augmentation checked. Zero cross-split parent or decoded-source hash overlap. Actual Ultralytics YOLOv8 architecture and both YAMLs load; its loader scans all 4,569 semantic images (4,006 boxes) plus 16 binary ZJU examples per split without image rejection or box loss, returning 3x640x640 tensors. The full ZJU population is covered by the independent verifier, not by the bounded loader smoke test.
+- Visually inspected five seeded positive originals per source (25 total) and their contact sheets. TILDA/MVTec/ZJU boxes align with visible annotations. AITEX boxes align with source masks but defects often lose visible detail at 640x40 content resolution. rmshashi's weak boxes and mixed dark photos/binary-looking renditions require caution. Strong-label-only lists and classification/normal-only manifests are provided; no model training ran.
+- Nine unit tests, Ruff, Black --check and AI pip check pass. No dependencies changed. Backend/frontend CI was not rerun or expanded: AI regression tests and dataset loading are local checks, not part of the existing two GitHub jobs. No remote CI/protection-state claim is made.
+- Updated dataset README, Memory, Phases, Architecture, PRD and root README. Rules and Design were reviewed and remain applicable without changes. Only scoped dataset-audit/offline-preparation checkboxes are complete; missing license/version archival, stronger evaluation policy, live ROI, training and all remaining product work stay open. Remained on features/zarwan; raw/generated files are ignored and untracked; no staging, commits, pushes, protected branch or ruleset changes.
+
+## AITEX-only tiling follow-up (2026-09-05)
+
+- User requested AITEX-specific rebuilding without changing the other four sources. Read Memory/Rules/Phases and inspected the existing dirty feature worktree; preserved all previous session changes. No dependencies, taxonomy mappings, raw files, other-source conversion/augmentation logic, or split assignments changed.
+- Use 256x256 native square crops at stride 192 (25% overlap), with a right-edge-anchored final crop where needed. Resize each crop to 640x640: native pixels scale by 2.5 rather than the old full-strip 0.15625, preserving 16 times the linear detail for 4096-wide strips without inventing new native resolution.
+- OR original masks, crop them, and derive tight connected-component boxes in local tile coordinates before YOLO normalization. Retain every foreground-bearing tile, including clipped boundary defects and single-pixel regions. Independent checks compare saved labels/masks to the raw crop and verify full source-mask coverage.
+- Fix source splits before tile selection. Tile IDs, parent IDs/pixel hashes, native crop windows, actual tile class, source class, transforms and augmentation seed/policy are recorded. All overlapping crops/copies inherit their parent split. Unknown-localization positives 0100_025_08 and 0106_010_03 remain whole-strip classification-only; their unknown defect positions cannot justify positive or negative tile labels.
+- Sample at most floor(positive tiles / 4) background tiles per split, seeded and round-robin across eligible strips; no background augmentation. Candidates may come from normal strips or mask-empty regions of localized defective strips. Background output class is normal, not the defective parent's class. Discard remaining empty tiles explicitly; 104 normal strips contribute no selected tiles but remain audited.
+- Actual selection: 5,144 candidates -> 241 positive tiles + 59 sampled backgrounds; 4,844 empty candidates discarded. Train/val/test positives 194/25/22; backgrounds 48/6/5. Positive train copies: 228. A boundary regression exposed rotation erasing a small edge defect; an AITEX-only deterministic flip/brightness fallback omits rotation when a labeled mask region is lost. Two actual copies used this fallback.
+- **AITEX output counts:** 470/31/27 detector images across train/val/test = 528, plus two classification-only train strips = 530. Detector class totals: weave_error 394, edge_damage 39, crease 28, foreign_object 8, normal 59. Per-split tables and selection details are in `ai/datasets/README.md` and ignored `aitex-tiling.json`.
+- **Combined active dataset:** 156,371 outputs = 96,940 unaugmented images/selected tiles + 59,431 train-only copies. Semantic detector splits 4,217/210/208; ZJU remains 132,766/9,484/9,484; classification-only remains 2/0/0. Source audit count stays 96,885; selected tile count is not an independent source-image count.
+- `build_dataset.py --rebuild-aitex` stages and validates only AITEX, reuses existing source splits/augmentation quotas, checks raw-image/pixel/annotation hashes, and replaces only its generated files. Previous 464 AITEX outputs and associated manifests are recoverable in ignored `processed/_aitex_rebuild_td4qntsj/previous/`, outside active YOLO paths. No data was deleted. Before/after non-AITEX manifest records, file sizes and modification times matched for all 155,841 other-source output images and their labels/masks; the combined fingerprint is in `aitex-tiling.json` (this is not a full payload-content hash).
+- AITEX staging and source-mask geometry verification passed for all 530 outputs: zero subpixel boxes and zero erased positive masks. Twelve regression tests pass, covering full strip/end coverage, clipped boxes, preserved tile-parent/split lineage, seeded repeatability, capped unaugmented normal selection and rotation fallback. Ruff, Black --check and AI pip check pass.
+- Ultralytics loads the updated semantic YAML: all 4,635 images and 4,289 boxes accepted, with 640x640 tensors; binary ZJU loader smoke checks still pass. Five new seeded AITEX positives were visually inspected in `_sanity_check/aitex_contact.jpg`, with visible retained texture and boxes aligned to cropped annotations. The complete combined-output recheck **passed for all 156,371 images**, including labels/masks, expected file pairs, selected-tile accounting, source-mask coverage and split isolation. Zero erased positive masks or cross-split parent/decoded-source hash overlap. AITEX has zero subpixel boxes; eight pre-existing TILDA subpixel boxes remain flagged and unchanged, outside this task's scope.
+- Updated dataset README, Memory, Phases and Architecture; the initial build entry is retained as explicitly historical. Current output-manifest SHA-256: `7a76dd4dc39001abaebe1af3eb33cfbad515696ae5a26e252b12a883aea9c961`; source-manifest SHA-256: `f506875447ad41fe8c7f6539a2677c25baae67ec8bfbd7fa7b3e9d78671bf373`. Final diff/ignore checks passed. Remained on `features/zarwan`; no staging, commit, push, branch-protection change, or model training. Raw/generated payloads and the previous-output archive are Git-ignored and untracked.
+- Tiling is not a measured accuracy improvement. Overlap produces correlated samples; curated negative sampling changes prevalence; held-out rare classes still come from very few independent strips. Define the strong-label baseline, inference-time tiling/merge policy and source-level evaluation before training claims. Live ROI integration and trained models remain unimplemented. This task does not change backend/frontend CI or resolve manual GitHub required-check configuration.
 
 ## Known issues and cautions
 
