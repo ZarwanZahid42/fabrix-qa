@@ -1,6 +1,6 @@
 # FabriX-QA Architecture
 
-**Version:** 1.2
+**Version:** 1.3
 **State:** Target product architecture; foundation and offline dataset preprocessing code exist
 **Last updated:** 2026-09-05
 
@@ -96,10 +96,22 @@ existing full-image transforms. This is offline tooling, not live inference.
 
 `processed/data.yaml` serves the semantic detector (rmshashi, AITEX, TILDA,
 MVTec carpet/grid). `processed/anomaly/data.yaml` serves ZJU binary localization;
-ZJU is excluded from semantic detector/classifier training. Normal-only manifests
+Native ZJU data is excluded from semantic detector/classifier training. Explicitly
+tagged procedural derivatives may use original ZJU normal training backgrounds;
+their semantic label comes from the inserted defect, not ZJU's binary annotation.
+Normal-only manifests
 select ZJU autoencoder training samples. Semantic classification manifests retain
 AITEX's two positive samples with unavailable localization. Strong-only lists
-exclude weak rmshashi boxes for separate detector evaluation.
+exclude weak rmshashi boxes and synthetic derivatives for real-only detector evaluation.
+
+`synthetic_defects.py` is an optional post-build extension for crease, edge_damage
+and foreign_object. Seeded recipes write train-only lossless images, insertion
+masks and YOLO boxes, tagged with generator/background provenance. Real payload
+metadata and held-out file-content snapshots guard against unintended changes.
+Synthetic-only and real-only lists support controlled ablation. The default
+detector train directory includes both; native anomaly examples remain unchanged.
+An existing synthetic layer locks the real base against in-place rebuilds so
+derivatives cannot become silently detached from their recorded backgrounds.
 
 Stable taxonomy, original source labels, researched mappings, annotation repair
 decisions and output verification are documented in `ai/datasets/README.md`.

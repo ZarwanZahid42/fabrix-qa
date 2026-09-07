@@ -1,6 +1,6 @@
 # FabriX-QA dataset manifest
 
-Audited 2026-09-05 on features/zarwan. Counts describe the local copies, not advertised sizes. Raw and processed payloads are Git-ignored. No model has been trained.
+Audited 2026-09-05 on features/zarwan. Counts describe the local copies, not advertised sizes. Raw and processed payloads are Git-ignored. No model has been trained. The real-data baseline is documented separately from the explicitly tagged synthetic training extension below.
 
 ## Source inventory (before conversion)
 
@@ -49,7 +49,7 @@ TILDA maps 0->hole, 1->foreign_object, 2->stain, 3->weave_error. **Stain has 100
 
 MVTec carpet/grid defects map to pattern_break as the requested texture-anomaly proxy, with original subtypes retained. This coarse project mapping does not assert that cuts, metal and glue are the same physical defect. Carpet: color19, cut17, hole17, metal_contamination17, thread19; grid: bent12, broken12, glue11, metal_contamination11, thread11. Normal total 593.
 
-**ZJU is excluded from the multiclass detector/classifier.** Its separate anomaly track retains binary status and localization. Future normal-only autoencoder training must use its normal-training manifest, not all images in anomaly/images/train.
+**Native ZJU examples remain excluded from multiclass detector/classifier training.** Its separate anomaly track retains binary status and localization. The explicitly authorized exception is a tagged synthetic derivative: normal, original ZJU training backgrounds can receive procedural defects with known insertion labels. No semantic defect type is inferred from ZJU's binary annotation. Future normal-only autoencoder training must still use its normal-training manifest, not all images in anomaly/images/train or the synthetic derivatives.
 
 **Unmapped/bucketed:** none of the observed AITEX/TILDA IDs remains unresolved. Fallback buckets remain explicit for future unknown codes.
 
@@ -151,7 +151,12 @@ processed/
     normal_{train,val,test}.txt  # ONLY normals; paths relative to anomaly/
   classification_only/          # two AITEX positives without valid localization
   classification_{train,val,test}.jsonl
-  strong_{train,val,test}.txt    # excludes weak/full-image and classification-only
+  strong_{train,val,test}.txt    # real-only; excludes weak, classification-only, synthetic
+  synthetic-manifest.jsonl      # explicit synthetic provenance and insertion recipes
+  synthetic-config.json
+  synthetic-verification.json  # extension verification and current combined counts
+  synthetic_train.txt           # synthetic-only training ablation list
+  real_train.txt                # non-synthetic detector train images, including ordinary augmentation
   source-manifest.jsonl         # raw/annotation hashes, pixels, boxes, source labels
   manifest.jsonl                # outputs, parent, split, transforms and copy seeds
   build-config.json
@@ -162,7 +167,8 @@ processed/
 ```
 
 Classification manifests reference images and semantic names; they are not a
-YOLO classification-folder export. They contain **no ZJU samples**. The two
+YOLO classification-folder export. They contain **no native ZJU samples**;
+tagged synthetic derivatives may use ZJU training backgrounds. The two
 classification-only images have no localization target and never appear under
 the detector's images/ tree. Normal semantic images have class_name=normal.
 Normal anomaly list paths use the `./images/...` convention, relative to their
@@ -191,7 +197,7 @@ validation is performed by the main verifier. No weights or training are needed.
 The existing GitHub CI only tests backend/frontend; these AI tests currently run
 locally and are not covered by its two jobs.
 
-## Build status
+## Verified real-data baseline (before synthetic extension)
 
 After AITEX-only tiling, the active dataset contains **156,371 images**: **96,940
 unaugmented source images/selected tiles** plus **59,431 train-only copies**,
@@ -310,3 +316,124 @@ or treat augmentation as independent rare-class evidence. Crease and edge_damage
 have only one original per held-out split. Pattern_break is a texture-anomaly
 proxy, not a clean physical-defect class. No training, accuracy, latency, or
 production-rights claim is made by this preprocessing result.
+
+## Disclosed synthetic defect augmentation
+
+`ai/preprocessing/synthetic_defects.py` implements a deliberate mitigation for
+scarce crease and edge_damage labels, and an additional foreign_object variation
+experiment. Synthetic labels describe the **inserted proxy**, not a newly
+discovered real defect. These are procedural appearance approximations, not
+textile-physics simulations, evidence of real-world accuracy, or independent
+real defect observations. This strategy must be disclosed in the FYP report.
+
+### Recipes and provenance
+
+- **crease:** thin dark quadratic curved line with a soft shadow and adjacent
+  light ridge, approximating a fold.
+- **edge_damage:** jagged border cutaway with projecting fibers, randomized over
+  all four image borders. A patch border is not a verified physical fabric
+  selvage: this is an edge-appearance proxy and may teach border shortcuts.
+- **foreign_object:** a small irregular contrasting debris patch or a curved
+  stray thread with variable color/opacity/texture.
+
+The exact changed-pixel support is saved as a binary insertion mask; its tight
+rectangle produces the normalized YOLO box. Images are lossless PNGs so pixels
+outside the insertion support remain exactly equal to the background. No label
+text or watermark is embedded in training pixels. Only review montages are
+visibly annotated `SYNTHETIC`.
+
+Every generated filename starts with `synthetic_`. Each manifest row explicitly
+has `synthetic: true`, `source: synthetic`, `annotation_kind: synthetic_mask`,
+generator version, recipe parameters/seed/index, background filename/source/file
+SHA-256, source parent ID/pixel hash and the original raw reference. Existing
+rows without `synthetic` mean non-synthetic; some still have `augmented: true`
+because of ordinary image transforms. Synthetic rows also set `augmented: true`
+as derivatives; use the synthetic flag to distinguish these categories.
+
+Only original, non-augmented, unpadded normal **training** backgrounds are
+eligible. Default source is ZJU; optional sources are AITEX, MVTec or `all`.
+No held-out parent/hash may be selected. Hash partitions and seed 42 select
+distinct backgrounds across the three synthetic classes, and increasing quotas
+preserves previously selected recipes. ZJU's native files and binary labels are
+not edited; derived examples retain ZJU attribution and applicable license
+restrictions, including the documented non-commercial academic scope.
+
+### Initial quotas and honest class counts
+
+Defaults target at least 200 total training images per requested class, with a
+minimum of 50 synthetic examples per class to exercise every generator. Existing
+foreign_object already has 328 training images, so its extra 50 are a disclosed
+variation experiment, not a claim that it was below 200. Existing counts below
+include ordinary augmentation/tiles and are **not independent real defect counts**.
+
+| Class | Existing non-synthetic train images | Verified synthetic addition | Current total |
+|---|---:|---:|---:|
+| crease | 24 | 176 | 200 |
+| edge_damage | 36 | 164 | 200 |
+| foreign_object | 328 | 50 | 378 |
+
+The verified extension adds **390 synthetic training images**. Current totals
+are **156,761 outputs**: 5,025 semantic detector images (train/val/test
+**4,607/210/208**), 151,734 unchanged ZJU anomaly images and two unchanged
+classification-only positives. The 156,371 pre-existing outputs are unchanged:
+96,940 unaugmented images/selected tiles plus 59,431 ordinary train augmentations.
+Synthetic examples are additional derivatives, not additional independent sources.
+
+`synthetic-verification.json` records exact recipe reproduction, mask/box support,
+background provenance, unchanged real-file record/size/mtime fingerprints and
+unchanged **file inventory plus SHA-256 contents of every val/test image, label
+and mask** across both tracks and classification-only directories. Current
+manifest SHA-256 is
+`7fafc0c358d2e11fd1b5e134181f5d2586639ee7a9a4ee02cc07b478617db82e`.
+The config's `real_manifest_sha256` fingerprints normalized non-synthetic JSONL
+records, not the original manifest's platform-dependent newline bytes.
+
+The earlier `verification.json` remains the full-decoding verification of the
+**156,371-image real baseline**, not a new full-dataset decoding report. The
+extension validates every new synthetic image/label/mask and preserves that
+baseline; it does not repeat the full 151,734-image ZJU decode. Nine preview
+examples (three per class) were visually inspected against their backgrounds
+and annotated boxes; the final review sheet is
+`_sanity_check/synthetic_contact.jpg`. These show insertion geometry, not
+proven realism or improved accuracy. All 19 preprocessing regression tests,
+Ruff, Black and the AI environment's dependency check pass.
+
+The independent `--verify` rerun passed for all 390 synthetic examples; an
+identical generation rerun reported **no files changed**. A separate manifest
+audit confirmed identical real records, no cross-split parent/hash overlap and
+exact semantic image/label/mask inventory. Ultralytics accepted **5,025 semantic
+images and 4,679 boxes**, including all 390 new boxes, plus the existing bounded
+16-image-per-split binary smoke check. Its valid held-out caches were reused;
+this is loader compatibility, not a new full held-out decode or training run.
+The foreign_object output contains 27 debris patches and 23 stray threads.
+
+### Reproduce, configure and evaluate
+
+From the repo root using the separate AI environment:
+
+```powershell
+.\ai\venv\Scripts\python.exe ai/preprocessing/synthetic_defects.py --preview
+.\ai\venv\Scripts\python.exe ai/preprocessing/synthetic_defects.py
+.\ai\venv\Scripts\python.exe ai/preprocessing/synthetic_defects.py --verify
+# Absolute synthetic quotas, not extra copies on every invocation:
+.\ai\venv\Scripts\python.exe ai/preprocessing/synthetic_defects.py --counts crease=200 edge_damage=200 foreign_object=75
+```
+
+`--target-train`, `--minimum-synthetic`, `--counts CLASS=N`, `--seed`,
+`--background-source`, and `--output` are configurable. An identical rerun
+verifies and makes no changes; quotas can grow without rewriting existing
+samples. Decreasing quotas or changing the base/seed/generator code is refused:
+build a separate real dataset and regenerate the extension there. The base
+builder and source-refresh commands likewise refuse rebuilding underneath an
+existing synthetic layer. Prior manifests are recoverably backed up under
+ignored `_synthetic_stage_*/previous/`.
+
+The standard `data.yaml` sees real plus synthetic images under `images/train`.
+`real_train.txt` enables the non-synthetic baseline;
+`strong_train.txt` remains real-only and also excludes weak rmshashi labels;
+`synthetic_train.txt` lists only procedural examples. The classifier train
+manifest includes synthetic flags. Val/test lists and images are not augmented
+or changed. Compare a fixed real-only baseline against real-plus-synthetic
+training on the **same real held-out sets**, report per-class metrics and
+independent source counts, and disclose appearance/domain bias. No performance
+benefit has yet been measured.

@@ -833,12 +833,22 @@ def verify_aitex_tiles(sources: list[dict], rows: list[dict], out: Path) -> None
             raise ValueError(f"AITEX foreground omitted: {source['raw']}")
 
 
+def require_real_only_output(out: Path) -> None:
+    """Prevent a base rebuild from silently orphaning synthetic derivatives."""
+    if (out / "synthetic-config.json").exists():
+        raise ValueError(
+            "Synthetic layer exists. Rebuild the real base into a fresh --output "
+            "directory, then regenerate synthetic examples against that base."
+        )
+
+
 def build(
     raw: Path, out: Path, seed: int = 42, workers: int = 8, resume: bool = False
 ) -> None:
     """Audit, split, transform and emit data; existing unrelated output is refused."""
     cv2.setNumThreads(1)
     raw, out = raw.resolve(), out.resolve()
+    require_real_only_output(out)
     if raw == out or raw in out.parents or out in raw.parents:
         raise ValueError("Raw/output paths must be disjoint")
     marker = out / "build-config.json"
@@ -974,7 +984,7 @@ def verify_row(row: dict, out: Path) -> dict:
                 f"Positive mask erased during preprocessing: {row['mask']}"
             )
         # Inclusive rasterization tolerates subpixel rounding/resampling, not shifts.
-        if row["annotation_kind"] in ("mask", "yolo") and mask.any():
+        if row["annotation_kind"] in ("mask", "yolo", "synthetic_mask") and mask.any():
             cover = np.zeros((640, 640), dtype=np.uint8)
             for x1, y1, x2, y2 in boxes:
                 cv2.rectangle(
@@ -1055,6 +1065,10 @@ def verify(out: Path, workers: int = 8) -> dict:
         json.loads(line)
         for line in (out / "source-manifest.jsonl").read_text().splitlines()
     ]
+    if any(r.get("synthetic", False) for r in rows):
+        from synthetic_defects import verify_synthetic_rows
+
+        verify_synthetic_rows(rows, out)
     actual_originals = Counter(
         r.get("tile_id", r["parent_id"]) for r in rows if not r["augmented"]
     )
@@ -1093,6 +1107,8 @@ def verify(out: Path, workers: int = 8) -> dict:
         )
         counts[key]["images"] += 1
         counts[key]["augmented" if r["augmented"] else "originals"] += 1
+        if r.get("synthetic", False):
+            counts[key]["synthetic"] += 1
         counts[key]["positive" if r["classes"] else "empty_labels"] += 1
         for c in r["classes"]:
             boxes[key]["defective" if r["track"] == "anomaly" else NAMES[c]] += 1
@@ -1143,6 +1159,7 @@ def verify(out: Path, workers: int = 8) -> dict:
             for r in rows
             if r["track"] == "multiclass"
             and r["split"] == split
+            and not r.get("synthetic", False)
             and r["annotation_kind"] not in ("weak_full_image", "classification_only")
         ]
         (out / f"strong_{split}.txt").write_text(
@@ -1225,6 +1242,7 @@ def rebuild_aitex(out: Path) -> None:
     """
     cv2.setNumThreads(1)
     out = out.resolve()
+    require_real_only_output(out)
     source_path, manifest_path = out / "source-manifest.jsonl", out / "manifest.jsonl"
     sources = [json.loads(line) for line in source_path.read_text().splitlines()]
     rows = [json.loads(line) for line in manifest_path.read_text().splitlines()]
@@ -1358,6 +1376,7 @@ def refresh_semantic(out: Path) -> None:
     Used during this build's verification loop. A fresh build already applies
     the same repair. Refuse changed source pixels or changed copy counts.
     """
+    require_real_only_output(out)
     source_path = out / "source-manifest.jsonl"
     sources = [json.loads(line) for line in source_path.read_text().splitlines()]
     config = json.loads((out / "build-config.json").read_text())

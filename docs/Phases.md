@@ -61,6 +61,8 @@ A checkbox is complete only when its artifact exists, relevant verification pass
 - [x] Initial build: decode and validate 156,305 generated images/labels/masks, inspect 25 source examples, run nine regression tests, and load both dataset configurations with Ultralytics (complete semantic scan, bounded binary loader smoke test). See Memory for the subsequent AITEX tiling build and current counts.
 - [x] AITEX tiling follow-up: rebuild only AITEX to 530 outputs, verify unchanged other-source outputs, recheck all 156,371 active images/labels/masks, inspect five tiled AITEX examples, pass 12 regression tests and updated Ultralytics loading. Eight pre-existing TILDA subpixel boxes remain documented and unchanged; no accuracy claim is implied.
 - [ ] Train and tune a YOLOv8 baseline.
+- [x] Implement and verify disclosed train-only synthetic crease/edge_damage/foreign_object augmentation: 390 tagged examples, exact insertion-mask YOLO boxes, real-data/held-out preservation checks, configurable reproducible quotas and 19 passing preprocessing regression tests. See Memory and dataset README for counts and verification scope.
+- [ ] Compare a real-only strong-label baseline against a controlled synthetic-augmentation ablation on identical real held-out sets; disclose proxy/domain bias and scarce independent rare-class evidence.
 - [ ] Select and train the CNN classifier architecture.
 - [ ] Train and calibrate the convolutional autoencoder anomaly model.
 - [ ] Select and validate the heatmap/localization method.
