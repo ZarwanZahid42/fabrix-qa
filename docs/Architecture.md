@@ -1,8 +1,8 @@
 # FabriX-QA Architecture
 
-**Version:** 1.3
+**Version:** 1.4
 **State:** Target product architecture; foundation and offline dataset preprocessing code exist
-**Last updated:** 2026-09-05
+**Last updated:** 2026-09-10
 
 ## 1. Architectural principles
 
@@ -129,6 +129,26 @@ overlapping tiles are correlated, rare classes remain sparse, and curated
 negative sampling changes evaluation prevalence. These limitations must inform
 subsequent training experiments and reported metrics; tiling is not a measured
 accuracy improvement yet.
+
+### 4.2.2 Manual Colab baseline training workflow (authored; not executed)
+
+`ai/training/colab_train_yolo.ipynb` is the baseline-v1 experiment entry point.
+It installs standard Ultralytics 8.4.133 and PyYAML 6.0.3 in Colab while retaining
+the runtime's CUDA PyTorch/torchvision stack; local headless/CPU requirements are
+not installed into Colab. No local dependency graph changes are required.
+The notebook extracts a user-supplied Drive ZIP to local runtime storage,
+validates semantic labels and manifest/split provenance, and writes a separate
+runtime YAML to replace the original Windows dataset path without changing data.
+It preserves all nine stable IDs and prints absent classes as such.
+
+COCO-pretrained YOLOv8n fine-tunes on all semantic train images (including
+disclosed synthetic and weak-label samples), selecting checkpoints on validation
+only. Test data is inventoried, not evaluated or tuned against. Run-specific
+checkpoints, configuration, hashes, runtime versions and metrics persist on Drive;
+the export cell also copies the best checkpoint to the requested top-level
+`FabriX-QA/best.pt`, preserving any prior copy. Local `train_yolo.py` intentionally
+remains comment-only until a local/automated runner is requested. Notebook
+preflight checks are not GPU execution, measured accuracy or a trained artifact.
 
 ### 4.3 FastAPI backend
 

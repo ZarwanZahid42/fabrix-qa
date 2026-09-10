@@ -1,6 +1,6 @@
 # FabriX-QA Development Phases
 
-**Last updated:** 2026-09-05
+**Last updated:** 2026-09-10
 **Current state:** Foundation and targeted Phase 2 offline data preparation complete; Phase 1 product decisions and model training remain open
 **Legend:** `[ ]` not complete, `[x]` complete
 
@@ -60,6 +60,8 @@ A checkbox is complete only when its artifact exists, relevant verification pass
 - [x] Add deterministic source-image splits and exact-duplicate/parent leakage checks.
 - [x] Initial build: decode and validate 156,305 generated images/labels/masks, inspect 25 source examples, run nine regression tests, and load both dataset configurations with Ultralytics (complete semantic scan, bounded binary loader smoke test). See Memory for the subsequent AITEX tiling build and current counts.
 - [x] AITEX tiling follow-up: rebuild only AITEX to 530 outputs, verify unchanged other-source outputs, recheck all 156,371 active images/labels/masks, inspect five tiled AITEX examples, pass 12 regression tests and updated Ultralytics loading. Eight pre-existing TILDA subpixel boxes remain documented and unchanged; no accuracy claim is implied.
+- [x] Author the nine-cell Colab YOLOv8n baseline-v1 notebook with local syntax/schema/preflight checks, editable Drive paths, class/synthetic counts, conservative pretrained configuration, validation reporting and persistent checkpoints.
+- [ ] Manually execute the notebook in Colab on GPU and report installation/training/validation/export results; notebook creation is not a completed training run.
 - [ ] Train and tune a YOLOv8 baseline.
 - [x] Implement and verify disclosed train-only synthetic crease/edge_damage/foreign_object augmentation: 390 tagged examples, exact insertion-mask YOLO boxes, real-data/held-out preservation checks, configurable reproducible quotas and 19 passing preprocessing regression tests. See Memory and dataset README for counts and verification scope.
 - [ ] Compare a real-only strong-label baseline against a controlled synthetic-augmentation ablation on identical real held-out sets; disclose proxy/domain bias and scarce independent rare-class evidence.

@@ -317,6 +317,30 @@ have only one original per held-out split. Pattern_break is a texture-anomaly
 proxy, not a clean physical-defect class. No training, accuracy, latency, or
 production-rights claim is made by this preprocessing result.
 
+## Manual Colab detector baseline v1
+
+Upload `ai/training/colab_train_yolo.ipynb` to Colab, select a GPU runtime and run
+its nine cells in order. Put your trusted `processed.zip` on Drive and edit the
+notebook's `DATASET_ZIP`. Archive either the `processed/` directory or its contents;
+include semantic `data.yaml`, `images/{train,val,test}`, `labels/{train,val,test}`
+and `manifest.jsonl`. The full processed archive is accepted, but native anomaly
+images are not detector inputs. Backup/preview/cache directories are excluded
+during extraction. A semantic-only ZIP with the complete manifest avoids moving
+the large anomaly payload unnecessarily. No ZIP was created by this task.
+
+The notebook preserves nine stable IDs (seven populated defect classes, two
+reserved empty buckets), checks actual class/synthetic counts and split lineage,
+and writes a separate runtime YAML for Colab paths. Baseline v1 uses all semantic
+train images, including synthetic and weak labels; it is not a strong-label-only
+benchmark. The default is COCO-pretrained YOLOv8n, 80 epochs/patience 15,
+640px/batch 8 with modest augmentation. Validation selects checkpoints; final
+test inference remains deliberately absent. Run artifacts and the exported
+`best.pt` persist on Drive. See the notebook for editable paths and limitations.
+
+Authored 2026-09-10 and locally checked against this dataset, **not yet run in
+Colab**. Installation, GPU training and reported metrics require Zarwan's manual
+execution. No measured accuracy, trained model or synthetic benefit is claimed.
+
 ## Disclosed synthetic defect augmentation
 
 `ai/preprocessing/synthetic_defects.py` implements a deliberate mitigation for

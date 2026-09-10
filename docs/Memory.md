@@ -8,11 +8,11 @@
 
 | Field | Value |
 |---|---|
-| Date | 2026-09-05 |
+| Date | 2026-09-10 |
 | Branch observed | `features/zarwan` tracking `origin/features/zarwan` |
 | Active stage | Foundation and targeted Phase 2 offline dataset preparation complete; Phase 1 product decisions remain open |
 | Product implementation | Offline preprocessing and output verification complete; website/AI inference features not started |
-| Next task | Define a real-only strong-label detector baseline and a disclosed real-plus-synthetic ablation on identical real held-out splits; remaining Requirements & Design decisions stay open |
+| Next task | Zarwan manually executes colab_train_yolo.ipynb on a Colab GPU and reports baseline-v1 validation results; real-only/strong-label ablations and final-test protocol remain open |
 | Team/product constraint | Two-person student team; website only; one FastAPI backend |
 
 The repository contains a minimal buildable Next.js shell, a FastAPI health bootstrap with one real smoke test, local Docker Compose topology, pinned requirements, an offline dataset preprocessing pipeline with regression tests, purpose-only product-feature placeholders, and six living documentation files. It does **not** contain authentication, database models/migrations, inference, edge capture, scoring, grading, alerts, reports, dashboard features, or tests for those product features.
@@ -53,7 +53,7 @@ The repository contains a minimal buildable Next.js shell, a FastAPI health boot
 - AI directories exist for datasets, notebooks, training, inference, models, and preprocessing.
 - `ai/venv` is a separate local Python 3.12 environment with the complete pinned AI/CV stack installed and `pip check` passing. The 2026-09-05 run reports Python 3.12.14; prior setup verification reported 3.12.13. This task did not install or upgrade dependencies or runtimes. The environment is ignored by Git.
 - The default Windows/PyPI install was verified as CPU-only: PyTorch `2.13.0+cpu`, torchvision `0.28.0+cpu`, `torch.version.cuda is None`, and CUDA is unavailable. OpenCV 5.0.0, Ultralytics 8.4.133, and Albumentations 2.0.8 import together.
-- Training/inference modules and live ROI patch extraction remain placeholders. Offline `ai/preprocessing/build_dataset.py`, its tests, annotation inspection and Ultralytics load verification tools now exist.
+- `ai/training/colab_train_yolo.ipynb` is an authored, locally checked manual Colab training workflow; it has not been executed on Colab/GPU. Local training entry points, inference and live ROI patch extraction remain placeholders. Offline `ai/preprocessing/build_dataset.py`, its tests, annotation inspection and Ultralytics load verification tools exist.
 - Edge stream and ROI files are purpose-only comments.
 - Five local raw datasets contain 96,885 training candidate source images (plus two excluded TILDA reference images). The AITEX-tiled real baseline has 156,371 outputs. A disclosed, verified 390-image synthetic train-only extension now brings the active total to 156,761: 5,025 semantic detector images, 151,734 unchanged ZJU anomaly images and two classification-only positives. AITEX still has 530 outputs (528 detector tiles/copies plus two untiled classification-only strips). All raw/generated payloads and recoverable archives remain ignored by Git. No model weights, training runs, scoring logic or live frame processing exist.
 - `ai/preprocessing/synthetic_defects.py` implements seeded crease, edge_damage and foreign_object appearance proxies using original normal training backgrounds, with exact support masks, YOLO boxes and explicit synthetic/background provenance. It can preview, generate, verify and grow configurable quotas without changing existing real data. Native ZJU remains anomaly-only; only explicitly tagged derivatives receive semantic labels from the procedural insertion.
@@ -94,10 +94,12 @@ The AI environment uses the standard PyPI PyTorch distribution, which installed 
 
 Zarwan explicitly authorized offline dataset preparation ahead of completing the
 remaining **Requirements & Design** decisions. That scoped task is now verified.
-AITEX tiling is now implemented with fixed source-image split groups. The next AI
-task is to define the real-only strong-label baseline and a controlled
-real-plus-synthetic ablation, then measure the tiled inputs' model accuracy
-without tuning on the final test split. Do not
+AITEX tiling is implemented with fixed source-image split groups. Zarwan has now
+requested a manual Colab baseline-v1 workflow using all semantic train images,
+including synthetic examples and weak full-image labels. The notebook exists;
+the next step is his GPU execution and results handoff. A real-only strong-label
+baseline and controlled synthetic ablation remain separate future experiments.
+Do not tune on the final test split or
 treat overlapping tiles as independent evidence or weak full-frame labels as
 precise localization ground truth. The following product decisions remain open:
 
@@ -165,6 +167,19 @@ the other four sources' processing is unchanged.
 - Follow-up validation passed: independent `--verify` checked all 390 synthetic outputs; identical default generation verified and reported no files changed. Manifest audit confirmed byte-hash-stable source manifest, identical real record values/order, zero cross-split parent/source-pixel hash overlap and exact semantic file inventory. Ultralytics accepted all **5,025 semantic images / 4,679 boxes** (train 4,607/4,342, val 210/173, test 208/164) and the existing 16-image-per-split anomaly smoke sample, with 3x640x640 tensors. Valid held-out loader caches were reused; this is not a fresh full decode or training run. Train selection lists contain 4,217 non-synthetic detector images, 2,924 strong real-only images, 390 synthetic images and 4,609 classifier rows (including two classification-only positives).
 - Updated dataset README, Architecture, PRD and Phases to disclose provenance, the native-ZJU/derived-image distinction and limitations. Synthetic-dominant rare classes, appearance/domain bias, border shortcuts (image border is not verified fabric selvage), near-duplicate/roll-level uncertainty and only one real crease/edge_damage example per held-out split remain serious evaluation limitations. No training or accuracy benefit is claimed. Next: real-only baseline versus a controlled synthetic ablation, with identical real validation/test sets and transparent per-class reporting.
 - Work stayed on `features/zarwan`; no commit, push, protected-branch or ruleset change. Generated data and backup manifests remain ignored. Existing backend/frontend CI does not exercise these offline AI tests; local validation is not a new GitHub CI result.
+
+## 2026-09-10 — Colab YOLOv8n baseline notebook authored (not trained)
+
+- Created `ai/training/colab_train_yolo.ipynb` from scratch with the nine requested cells: usage, Drive mount, pinned pip installation, editable ZIP extraction, semantic YAML/count validation, pretrained fine-tuning, validation metrics, Drive export, dated limitations. All code cells have null execution counts and no saved outputs. The GPU runtime is suggested in notebook metadata and explicitly checked before training.
+- The initially clean checkout was on `features/kaynat`; both feature branches pointed to `06c55d4`. Switched to the existing requested `features/zarwan` before editing. No commit, push, protected-branch or ruleset changes.
+- Colab installs standard `ultralytics==8.4.133` and `PyYAML==6.0.3` with pip, using the same Ultralytics core version as the local headless distribution. Confirmed distribution purpose via PyPI/installed metadata and training/metric API via official docs/installed source. Do not install the local AI requirements over Colab's CUDA torch/torchvision; record actual runtime versions and refuse CPU fallback. No local dependencies were installed/changed.
+- ZIP input defaults to `/content/drive/MyDrive/FabriX-QA/processed.zip`, extraction to `/content/dataset`. Supports flat or `processed/`-wrapped archives, rejects traversal/symlinks/duplicate members, checks free space, excludes preprocessing backup/cache folders, and refuses merging into a nonempty extraction. Include `manifest.jsonl` with semantic images/labels/YAML for provenance checks. Native ZJU/anomaly YAML is not selected for detector training.
+- Preflight reads actual image inventories and normalized YOLO labels, checks class/box ranges, label pairs, manifest agreement, parent/hash split isolation and synthetic/augmented held-out exclusion. Prints original YAML, per-class image counts (not box counts), synthetic counts and manifest hash. Writes a separate Colab runtime YAML with a corrected absolute path; source YAML/data are unchanged. Preserves the real taxonomy: nine IDs, seven populated defects and two empty reserved buckets; normal is background, not an eighth defect class.
+- Defaults: **COCO-pretrained `yolov8n.pt`**, 80 epochs, patience 15, batch 8 (lower to 4 on OOM), 640px, CUDA device 0, seed 42, AdamW at 0.001 with warmup/cosine schedule, modest brightness/saturation/flips, no mosaic/mixup/rotation/crop-style spatial transforms. These are conservative starting settings, not measured optimal hyperparameters. Baseline v1 deliberately uses all semantic train data, including synthetic and weak rmshashi labels; it is not the deferred strong-label-only baseline.
+- Run-specific checkpoints/logs persist on Drive during training, and the final cell copies best.pt to `/content/drive/MyDrive/FabriX-QA/best.pt` with SHA-256 verification and preservation of any previous top-level checkpoint. Unique run folders retain runtime/config/dataset/pretrained/checkpoint hashes, pip freeze, curves and validation JSON. Final metrics reload best.pt, use **val only**, print mAP@0.5/mAP@0.5:0.95 and correctly indexed per-class P/R/AP; absent classes are N/A, not invented scores. No test inference occurs.
+- Kept `train_yolo.py` comment-only and pointed it to the notebook; duplicating training logic without a requested local runner would risk configuration drift. All **five offline notebook/helper tests pass**, covering notebook schema/order/empty outputs/syntax, safe ZIP extraction, counts/provenance guards, per-class metric indexing/N/A and previous-checkpoint-preserving export with small fixtures. Ruff and Black checks pass, including formatting checks of all seven Python cells. The actual local preflight passed: **4,607/210/208** detector images, **390/0/0** synthetic images; the notebook records the output-manifest snapshot hash (currently `7fafc0c358d2e11fd1b5e134181f5d2586639ee7a9a4ee02cc07b478617db82e`). Local preflight wrote only a temporary runtime YAML, not dataset files. Fixture metrics/checkpoints are test inputs, not measured training results or real model weights.
+- **Manual verification remains:** no Colab session, Drive authorization, pip installation in Colab, pretrained download, GPU training, final metrics or real checkpoint export was run here. Zarwan must execute the notebook and report results/failures; only then record trained-baseline outcomes and consider the training checkbox. Dataset date in the notebook is 2026-09-10; actual documented build is 2026-09-05 and its printed manifest hash identifies the uploaded snapshot. Rare independent crease/edge_damage coverage, limited foreign_object source coverage, synthetic bias and weak localization remain explicit limitations.
+- Updated Phases, Architecture and dataset README for the notebook handoff. Product PRD/Rules/Design remain applicable without changes. Existing backend/frontend CI was not changed or run; these offline checks are not a Colab/GPU or remote CI result.
 
 ## Known issues and cautions
 
