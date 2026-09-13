@@ -39,7 +39,7 @@ def curve(points: np.ndarray) -> np.ndarray:
 
 
 def render_defect(
-    background: np.ndarray, kind: str, seed: int
+    background: np.ndarray, kind: str, seed: int, edge_revision: int = 2
 ) -> tuple[np.ndarray, np.ndarray, list, dict]:
     """Render a proxy and derive an exact box from pixels actually changed.
 
@@ -85,7 +85,9 @@ def render_defect(
             "points": points.tolist(),
             "thickness": thickness,
         }
-    elif kind == "edge_damage":
+    elif kind == "edge_damage" and edge_revision == 2:
+        result, params = render_edge_v2(background, seed)
+    elif kind == "edge_damage" and edge_revision == 1:
         start = int(rng.integers(80, 400))
         length = int(rng.integers(100, 230))
         xs = np.arange(start, min(620, start + length), 5)
@@ -118,6 +120,8 @@ def render_defect(
             "start": start,
             "length": length,
         }
+    elif kind == "edge_damage":
+        raise ValueError(f"Unsupported edge recipe revision: {edge_revision}")
     else:
         cx, cy = rng.integers(90, 550, 2)
         if rng.random() < 0.45:
@@ -160,6 +164,69 @@ def render_defect(
         raise ValueError("Synthetic defect is not visibly supported by enough pixels")
     box = [float(xx.min()), float(yy.min()), float(xx.max() + 1), float(yy.max() + 1)]
     return result, mask, box, params
+
+
+def render_edge_v2(background: np.ndarray, seed: int) -> tuple[np.ndarray, dict]:
+    """Coherent torn notch or inward cut, with destination-aware contrast/fibers.
+
+    Near-edge cuts reduce the old border-only shortcut observed against real
+    TRAIN AITEX examples. Still a disclosed proxy, not textile-physics ground truth.
+    """
+    rng = np.random.default_rng(seed)
+    turns = int(rng.integers(0, 4))
+    # Work on the actual destination fabric so contrast/fiber colors cannot be
+    # sampled from an unrelated top border and then rotated onto another edge.
+    base = np.ascontiguousarray(np.rot90(background, turns)).astype(np.float32)
+    mask = np.zeros((640, 640), np.uint8)
+    border_notch = rng.random() < 0.3
+    if border_notch:
+        center = int(rng.integers(140, 500))
+        span, depth = int(rng.integers(100, 181)), int(rng.integers(45, 81))
+        xs = np.linspace(center - span // 2, center + span // 2, 24)
+        shape = np.sin(np.linspace(0, math.pi, len(xs))) ** 0.65
+        ys = np.maximum(2, depth * shape + rng.uniform(-5, 5, len(xs)))
+        boundary = np.stack([xs, ys], axis=1).astype(np.int32)
+        polygon = np.array(
+            [[int(xs[0]), 0], *boundary.tolist(), [int(xs[-1]), 0]], np.int32
+        )
+        style = "coherent_border_notch_v2"
+    else:
+        start = int(rng.integers(12, 100))
+        length, center = int(rng.integers(90, 221)), int(rng.integers(100, 540))
+        xs = np.linspace(start, start + length, 30)
+        axis = center + 5 * np.sin(np.linspace(0, math.pi, len(xs)))
+        taper = np.sin(np.linspace(0, math.pi, len(xs))) ** 0.5
+        half_width = rng.uniform(4, 9) * taper + rng.uniform(0.5, 2, len(xs))
+        upper = np.stack([xs, axis - half_width], axis=1).astype(np.int32)
+        lower = np.stack([xs, axis + half_width], axis=1).astype(np.int32)
+        polygon = np.concatenate([upper, lower[::-1]])
+        boundary = lower
+        style = "inward_frayed_cut_v2"
+    cv2.fillPoly(mask, [polygon], 255, cv2.LINE_AA)
+    support = mask > 0
+    local = float(base[support].mean())
+    # Both light and dark fabrics need a visible underlying void. Relative
+    # contrast follows the destination; use a coherent shape, not white noise.
+    void = max(4.0, local - 100) if local >= 100 else min(245.0, local + 110)
+    shade = void + rng.normal(0, 1.5, (640, 640, 1))
+    alpha = mask.astype(np.float32)[..., None] / 255
+    result = base * (1 - alpha) + shade * alpha
+    # A narrow worn rim keeps texture adjacent to the cut and adds frayed yarns.
+    rim = cv2.dilate(mask, np.ones((3, 3), np.uint8)) > mask
+    result[rim] = base[rim] * 0.7 + (245 if void < local else 20) * 0.3
+    fiber_layer = np.zeros_like(mask)
+    for x, y in boundary[2:-2:2]:
+        end = (int(x + rng.integers(-5, 6)), max(0, int(y - rng.integers(3, 10))))
+        cv2.line(fiber_layer, (int(x), int(y)), end, 255, 1, cv2.LINE_AA)
+    fiber_alpha = fiber_layer.astype(np.float32)[..., None] / 255 * 0.8
+    result = result * (1 - fiber_alpha) + base * fiber_alpha
+    return np.ascontiguousarray(np.rot90(result, -turns)), {
+        "style": style,
+        "edge_revision": 2,
+        "quarter_turns": turns,
+        "destination_mean": local,
+        "void_luminance": void,
+    }
 
 
 def eligible_backgrounds(rows: list[dict], source: str) -> list[dict]:
@@ -315,7 +382,10 @@ def verify_synthetic_rows(
             raise ValueError("Background changed since synthesis")
         bg = load_rgb(bg_path)
         expected, support, box, params = render_defect(
-            bg, row["class_name"], row["augmentation_seed"]
+            bg,
+            row["class_name"],
+            row["augmentation_seed"],
+            edge_revision=row["recipe_parameters"].get("edge_revision", 1),
         )
         actual = load_rgb(file_path(payload_root, row["image"]))
         stored = cv2.imread(

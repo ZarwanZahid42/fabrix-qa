@@ -1,8 +1,8 @@
 # FabriX-QA Architecture
 
-**Version:** 1.4
-**State:** Target product architecture; foundation and offline dataset preprocessing code exist
-**Last updated:** 2026-09-10
+**Version:** 1.6
+**State:** Target architecture with implemented foundation, preprocessing and prototype image/file-video detector
+**Last updated:** 2026-09-13
 
 ## 1. Architectural principles
 
@@ -56,11 +56,11 @@ The edge and AI modules may initially run in the same Python process/environment
 | `backend/app/services/` | Grading, yield, notifications, reports | Purpose-only placeholders |
 | `backend/app/websockets/` | Authenticated live-event connections | Purpose-only placeholders |
 | `ai/datasets/` | Dataset instructions/manifests; raw and processed data are ignored | Five local sources audited; separate semantic and anomaly outputs |
-| `ai/training/` | Reproducible model training entry points | Purpose-only placeholders |
-| `ai/inference/` | Unified inference and heatmap generation | Purpose-only placeholders |
-| `ai/models/` | Model documentation; weights are ignored | Documentation only |
+| `ai/training/` | Reproducible model training entry points | Colab notebook and offline tests; local runners remain placeholders |
+| `ai/inference/` | Detector entry point; future fused inference and heatmaps | Shared prototype detector, image CLI and real/mock verification; fusion/heatmaps still placeholders |
+| `ai/models/` | Model documentation; weights are ignored | Supplied v2 best.pt, validation JSON and model card |
 | `ai/preprocessing/` | Offline annotation conversion, letterboxing, augmentation and verification | Dataset builder and regression tests; live ROI integration remains a placeholder |
-| `edge/` | Camera streaming and ROI selection | Purpose-only placeholders |
+| `edge/` | Frame processing and future camera/ROI integration | Every-frame file-video annotation implemented; live camera/ROI still placeholders |
 | `docker/` | Local Compose topology and database init hooks | Infrastructure scaffold |
 | `docs/` | Living product, architecture, rules, phases, design, memory | Initial baseline |
 
@@ -68,7 +68,15 @@ The edge and AI modules may initially run in the same Python process/environment
 
 ### 4.1 Edge capture
 
-`stream_handler.py` will own source lifecycle, timestamps, frame sequence numbers, reconnect behavior, sampling, and a bounded handoff buffer. `roi_selector.py` will validate and persist ROI coordinates independent of display resolution. Raw video should not traverse FastAPI unless a later measured design requires it.
+`stream_handler.py` now implements local file-video decoding, sequential frame inference, annotation, frame-index/nominal-time logs and verified encoding. It shares one `FabricDetector` from `ai/inference/run_detection.py`, defaults to `ai/models/best.pt`, and retains original dimensions/FPS without accumulating frames. Output publication follows a complete decode check; no overwrite is allowed. MP4/mp4v and AVI/MJPG are supported, without audio. Live capture/reconnect, sampling/backpressure across services and camera timestamps remain future work. `roi_selector.py` is still a placeholder. Raw video should not traverse FastAPI unless a later measured design requires it.
+
+Prototype image/frame inference enforces the checkpoint's exact nine-name map,
+uses BGR arrays and 640-square letterboxing, and exposes original-image pixel boxes,
+confidence and model SHA-256. It is not yet the versioned production/fusion event
+contract. CPU is the portable default; confidence 0.25 and IoU 0.7 are uncalibrated
+prototype settings. Missing weights fail without a pretrained fallback. No live
+AITEX tiling/merge strategy is implemented, so wide-strip inference still needs
+ROI/tiling validation. See `ai/models/README.md` for commands and measured limits.
 
 ### 4.2 AI/CV pipeline
 
@@ -113,6 +121,14 @@ detector train directory includes both; native anomaly examples remain unchanged
 An existing synthetic layer locks the real base against in-place rebuilds so
 derivatives cannot become silently detached from their recorded backgrounds.
 
+Edge recipe revision 2 replaces the original border-only sawtooth proxy with
+coherent notches and inward near-edge cuts, using destination-aware contrast.
+`refresh_synthetic_edge.py` stages/verifies the replacement and retains prior
+payloads and metadata for recovery; it does not change other class recipes or
+real/held-out data. `audit_yolo_labels.py` independently audits every semantic
+label, including finite/range/corner checks and separately reported subpixel
+warnings. Valid labels do not prove numerical stability during GPU training.
+
 Stable taxonomy, original source labels, researched mappings, annotation repair
 decisions and output verification are documented in `ai/datasets/README.md`.
 The dataset taxonomy includes foreign_object, crease and edge_damage alongside
@@ -130,9 +146,9 @@ negative sampling changes evaluation prevalence. These limitations must inform
 subsequent training experiments and reported metrics; tiling is not a measured
 accuracy improvement yet.
 
-### 4.2.2 Manual Colab baseline training workflow (authored; not executed)
+### 4.2.2 Manual Colab training workflow (v2 prototype supplied)
 
-`ai/training/colab_train_yolo.ipynb` is the baseline-v1 experiment entry point.
+`ai/training/colab_train_yolo.ipynb` remains the baseline training entry point.
 It installs standard Ultralytics 8.4.133 and PyYAML 6.0.3 in Colab while retaining
 the runtime's CUDA PyTorch/torchvision stack; local headless/CPU requirements are
 not installed into Colab. No local dependency graph changes are required.
@@ -149,6 +165,18 @@ the export cell also copies the best checkpoint to the requested top-level
 `FabriX-QA/best.pt`, preserving any prior copy. Local `train_yolo.py` intentionally
 remains comment-only until a local/automated runner is requested. Notebook
 preflight checks are not GPU execution, measured accuracy or a trained artifact.
+Zarwan reports v1 completion with intermittent infinite box loss; actual run
+artifacts and a GPU reproduction remain needed to diagnose it. The notebook
+standardizes the Drive ZIP variable as `DATASET_ZIP_PATH`, labels new runs v2,
+and leaves AMP/optimizer settings unchanged rather than asserting a guessed fix.
+
+On 2026-09-13, Zarwan supplied v2 best.pt and its validation JSON; the model is
+adopted for prototype development after real image/file-video smoke verification.
+Exact supplied validation mAP50 is 0.7397368457536011 and mAP50-95 is
+0.46414946906810284. The checkpoint's stale v1 run name, slightly different
+embedded metrics and missing training-manifest hash remain explicit provenance
+gaps in the model card. Training completion does not resolve the historical loss
+diagnosis or certify unseen-roll accuracy, rare edge performance or live FPS.
 
 ### 4.3 FastAPI backend
 

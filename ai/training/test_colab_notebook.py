@@ -53,6 +53,13 @@ class ColabNotebookTests(unittest.TestCase):
         self.assertNotIn('YOLO("yolov8n.yaml")', training)
         self.assertIn('split="val"', "".join(cells[6]["source"]))
 
+    def test_zip_path_name_is_consistent_in_every_cell(self):
+        source = "\n".join("".join(c["source"]) for c in self.notebook["cells"])
+        self.assertNotRegex(source, r"\bDATASET_ZIP\b")
+        self.assertIn("DATASET_ZIP_PATH = ", source)
+        self.assertIn("extract_dataset(Path(DATASET_ZIP_PATH), DATASET_DIR)", source)
+        self.assertIn('"dataset_zip": DATASET_ZIP_PATH', source)
+
     def test_zip_extraction_rejects_traversal_and_nonempty_destination(self):
         extract = helpers(self.notebook["cells"][3])["extract_dataset"]
         with tempfile.TemporaryDirectory() as directory:

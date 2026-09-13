@@ -2,7 +2,7 @@
 
 FabriX-QA is a website-based final-year project for AI-assisted textile inspection. The planned system processes fabric video frame by frame, detects defects with YOLOv8, classifies holes/stains/weave errors/pattern breaks with a CNN, flags anomalies with an autoencoder, generates localization heatmaps, calculates an auditable four-point roll score and A/B/C/D grade, estimates yield loss, streams live evidence to a role-gated dashboard, and sends SMS/email alerts.
 
-**Current status:** foundation scaffold plus offline dataset preprocessing. Product features and trained AI models are not implemented. See `docs/Memory.md` for verification status and `ai/datasets/README.md` for the real data inventory, mappings, build commands and limitations.
+**Current status:** foundation scaffold, offline dataset preprocessing, Colab training and a supplied baseline-v2 prototype detector. Image inference and annotated file-video processing now run with `ai/models/best.pt`; live camera/ROI, fused AI and website product features remain unimplemented. See `ai/models/README.md` for commands, exact validation metrics and limitations, `docs/Memory.md` for evidence/provenance gaps, and `ai/datasets/README.md` for data inventory.
 
 ## Technology baseline
 

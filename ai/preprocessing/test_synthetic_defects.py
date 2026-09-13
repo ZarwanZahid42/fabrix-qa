@@ -83,7 +83,7 @@ class SyntheticTests(unittest.TestCase):
                     self.assertLess(int(mask.sum()), 640 * 640 * 0.15)
                     if kind == "edge_damage":
                         self.assertTrue(
-                            box[0] == 0 or box[1] == 0 or box[2] == 640 or box[3] == 640
+                            min(box[0], box[1], 640 - box[2], 640 - box[3]) < 100
                         )
 
     def test_invalid_shape_and_class_are_rejected(self):

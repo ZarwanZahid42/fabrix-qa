@@ -1,8 +1,8 @@
 # FabriX-QA Product Requirements Document
 
 **Version:** 1.0
-**Status:** Foundation complete; offline dataset preparation authorized; product features not implemented
-**Last updated:** 2026-09-05
+**Status:** Foundation and offline preparation complete; trained detector image/file-video prototype implemented; integrated product features remain pending
+**Last updated:** 2026-09-13
 **Team:** Two-person final-year-project team
 **Product form:** Website only; no mobile application
 
@@ -34,6 +34,15 @@ RBAC is deny-by-default. Final endpoint and page permissions must be captured in
 - Apply bounded sampling/backpressure so inference cannot create an unbounded queue.
 
 ### 4.2 AI and computer vision
+
+Prototype checkpoint (2026-09-13): supplied YOLOv8n baseline v2 now powers local
+image and annotated file-video inference. Supplied validation mAP50 is
+0.7397368457536011; this is not a product acceptance threshold. Edge damage is
+weak (AP50 0.495, two val images) and smoke tests include misses/confusions.
+Nine detector IDs include seven populated classes and two untrained reserved
+buckets; product handling of the additional classes remains open. See the model
+card for exact metrics/provenance. Live ROI, CNN/autoencoder fusion, heatmaps and
+the requirements below are not completed by this detector-only implementation.
 
 - Use YOLOv8 to detect candidate defect regions.
 - Use a PyTorch CNN classifier to classify confirmed regions as holes, stains, weave errors, or pattern breaks.

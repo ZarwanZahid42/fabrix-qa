@@ -1,6 +1,6 @@
 # FabriX-QA dataset manifest
 
-Audited 2026-09-05 on features/zarwan. Counts describe the local copies, not advertised sizes. Raw and processed payloads are Git-ignored. No model has been trained. The real-data baseline is documented separately from the explicitly tagged synthetic training extension below.
+Dataset prepared 2026-09-05 on features/zarwan; edge revision verified 2026-09-12 and supplied v2 prototype adopted 2026-09-13. Counts describe local copies, not advertised sizes. Raw and processed payloads are Git-ignored. V1 is historical; v2 checkpoint/report and actual image/file-video inference evidence are documented in `ai/models/README.md`. Exact Colab training-data lineage still needs run metadata. The real-data baseline is documented separately from the explicitly tagged synthetic training extension below.
 
 ## Source inventory (before conversion)
 
@@ -317,11 +317,21 @@ have only one original per held-out split. Pattern_break is a texture-anomaly
 proxy, not a clean physical-defect class. No training, accuracy, latency, or
 production-rights claim is made by this preprocessing result.
 
-## Manual Colab detector baseline v1
+## Manual Colab detector baseline (v2 prototype supplied 2026-09-13)
+
+Zarwan has now supplied `ai/models/best.pt` and `validation_metrics.json`; v2 is
+the adopted prototype detector and has passed real image/file-video smoke
+inference. Exact supplied val mAP50 is 0.7397368457536011 and mAP50-95 is
+0.46414946906810284. See `ai/models/README.md` for per-class scores and limitations.
+The checkpoint retains a stale v1 run name and no dataset manifest hash; matching
+its Colab ZIP to this local revision still needs run metadata. Historical loss
+stability and dataset-level generalization are not established by smoke inference.
+The earlier preparation/readiness conclusions below describe what was verified
+before this model handoff, not a claim that v2 remains unexecuted.
 
 Upload `ai/training/colab_train_yolo.ipynb` to Colab, select a GPU runtime and run
 its nine cells in order. Put your trusted `processed.zip` on Drive and edit the
-notebook's `DATASET_ZIP`. Archive either the `processed/` directory or its contents;
+notebook's `DATASET_ZIP_PATH`. Archive either the `processed/` directory or its contents;
 include semantic `data.yaml`, `images/{train,val,test}`, `labels/{train,val,test}`
 and `manifest.jsonl`. The full processed archive is accepted, but native anomaly
 images are not detector inputs. Backup/preview/cache directories are excluded
@@ -330,16 +340,29 @@ the large anomaly payload unnecessarily. No ZIP was created by this task.
 
 The notebook preserves nine stable IDs (seven populated defect classes, two
 reserved empty buckets), checks actual class/synthetic counts and split lineage,
-and writes a separate runtime YAML for Colab paths. Baseline v1 uses all semantic
+and writes a separate runtime YAML for Colab paths. The candidate uses all semantic
 train images, including synthetic and weak labels; it is not a strong-label-only
 benchmark. The default is COCO-pretrained YOLOv8n, 80 epochs/patience 15,
 640px/batch 8 with modest augmentation. Validation selects checkpoints; final
 test inference remains deliberately absent. Run artifacts and the exported
 `best.pt` persist on Drive. See the notebook for editable paths and limitations.
 
-Authored 2026-09-10 and locally checked against this dataset, **not yet run in
-Colab**. Installation, GPU training and reported metrics require Zarwan's manual
-execution. No measured accuracy, trained model or synthetic benefit is claimed.
+Authored 2026-09-10; v1 completed in Colab according to Zarwan's 2026-09-12 report:
+mAP50 **0.644**, mAP50-95 **0.440**, best epoch reported as 28 with 43 epochs run
+and patience 15. Per-class mAP50: stain 0.957, foreign_object 0.824, hole 0.778,
+crease 0.665, pattern_break 0.663, weave_error 0.568, edge_damage 0.055 with
+reported zero recall. These are user-reported validation results, not inspected
+run artifacts or final-test scores. Infinite box loss was reported at epochs
+20, 28, 31, 35 and 38–43. Do not treat v1's Drive best.pt as the final model;
+preserve it as historical evidence and supersede it only after a validated v2 run.
+
+The repo notebook now consistently defines/uses `DATASET_ZIP_PATH`, including
+extraction and run metadata, matching the user's manual Colab correction. It
+labels future runs v2; the supplied prototype is now adopted, but **every-epoch
+GPU loss stability is not independently verified**. For another run, re-upload the
+revised dataset ZIP and use a fresh extraction. AMP/optimizer settings were not
+changed speculatively. Logs and a failing-batch/runtime reproduction are needed
+before claiming the infinite-loss issue is fixed.
 
 ## Disclosed synthetic defect augmentation
 
@@ -354,9 +377,11 @@ real defect observations. This strategy must be disclosed in the FYP report.
 
 - **crease:** thin dark quadratic curved line with a soft shadow and adjacent
   light ridge, approximating a fold.
-- **edge_damage:** jagged border cutaway with projecting fibers, randomized over
-  all four image borders. A patch border is not a verified physical fabric
-  selvage: this is an edge-appearance proxy and may teach border shortcuts.
+- **edge_damage revision 2:** coherent frayed border notches (30% recipe
+  probability) or inward near-edge cuts (70%), oriented across four sides.
+  Contrast and fiber colors are derived from the actual destination region.
+  Revision 1's narrow sawtooth border-only pattern is retained only for legacy
+  verification/archives. Neither recipe proves the image border is a real selvage.
 - **foreign_object:** a small irregular contrasting debris patch or a curved
   stray thread with variable color/opacity/texture.
 
@@ -406,16 +431,16 @@ Synthetic examples are additional derivatives, not additional independent source
 `synthetic-verification.json` records exact recipe reproduction, mask/box support,
 background provenance, unchanged real-file record/size/mtime fingerprints and
 unchanged **file inventory plus SHA-256 contents of every val/test image, label
-and mask** across both tracks and classification-only directories. Current
-manifest SHA-256 is
+and mask** across both tracks and classification-only directories. The original
+2026-09-05 extension manifest SHA-256 was
 `7fafc0c358d2e11fd1b5e134181f5d2586639ee7a9a4ee02cc07b478617db82e`.
 The config's `real_manifest_sha256` fingerprints normalized non-synthetic JSONL
 records, not the original manifest's platform-dependent newline bytes.
 
-The earlier `verification.json` remains the full-decoding verification of the
-**156,371-image real baseline**, not a new full-dataset decoding report. The
-extension validates every new synthetic image/label/mask and preserves that
-baseline; it does not repeat the full 151,734-image ZJU decode. Nine preview
+On 2026-09-05, `verification.json` covered the **156,371-image real baseline**;
+the initial synthetic extension validated every new synthetic image/label/mask
+and preserved that baseline without repeating the full ZJU decode. Current
+revision-2 verification scope is recorded below. Nine initial preview
 examples (three per class) were visually inspected against their backgrounds
 and annotated boxes; the final review sheet is
 `_sanity_check/synthetic_contact.jpg`. These show insertion geometry, not
@@ -430,6 +455,93 @@ images and 4,679 boxes**, including all 390 new boxes, plus the existing bounded
 16-image-per-split binary smoke check. Its valid held-out caches were reused;
 this is loader compatibility, not a new full held-out decode or training run.
 The foreign_object output contains 27 debris patches and 23 stray threads.
+
+### Edge revision and nonfinite-loss investigation (2026-09-12)
+
+Five unaugmented real AITEX training tiles and five fixed synthetic v1
+examples were inspected. Real labels include short cuts extending inward near
+the fabric edge; v1 used a thin, uniformly border-anchored sawtooth notch. That
+domain/position mismatch may teach an irrelevant border shortcut. A concrete
+code problem also existed: v1 selected contrast/fiber colors at the top edge
+before rotating the overlay onto a different destination edge.
+
+Revision 2 chooses the orientation first, samples the actual destination fabric,
+and uses a coherent tapered cut/notch, a narrow worn rim and short frayed fibers.
+Notches span 100–180px and extend 45–80px inward; near-edge cuts start 12–99px
+from a side and extend 90–220px with tapered thickness. Contrast targets about
+100 luminance levels from the local mean. Exact changed-pixel masks still define
+tight boxes. This addresses visibility/shape/position rather than merely adding
+more synthetic volume: **164 replacements, still 200 total edge train images**.
+The 36 non-synthetic edge training copies/tiles remain unchanged. Crease and
+foreign_object recipes and payloads are not changed. These are still visibly
+procedural proxies, not proven realistic defects or measured recall improvement.
+
+Review evidence: `_sanity_check/edge_real_train_review.jpg`,
+`edge_v1_review.jpg`, and `edge_v2_comparison.jpg` (background/old/v2/boxed v2).
+No held-out image appearance was used to tune this revision. Use the explicit
+recoverable migration, not the generic generator's config-fingerprint guard bypass:
+
+```powershell
+.\ai\venv\Scripts\python.exe ai/preprocessing/refresh_synthetic_edge.py --preview
+.\ai\venv\Scripts\python.exe ai/preprocessing/refresh_synthetic_edge.py
+.\ai\venv\Scripts\python.exe ai/preprocessing/audit_yolo_labels.py --report ai/datasets/processed/_sanity_check/label_audit_after.json
+.\ai\venv\Scripts\python.exe ai/preprocessing/build_dataset.py --verify
+.\ai\venv\Scripts\python.exe ai/preprocessing/verify_ultralytics.py
+```
+
+Migration validates v1 recipes, stages v2 PNGs/masks/labels, backs up prior edge
+payloads and metadata under ignored `_edge_v2_*/previous/`, and preserves every
+other payload's metadata plus every val/test file's content hash. On failure it
+restores originals. Repeating a completed migration verifies without rewriting.
+Per-row `recipe_parameters.edge_revision: 2` distinguishes the new edges; family
+version stays `procedural-fabric-v1` so existing crease/foreign seeds do not drift.
+The generator code fingerprint is explicitly updated by the validated migration.
+
+The completed migration replaced exactly **164 edge rows/payload triples**:
+53 border notches and 111 inward cuts. All other manifest rows are identical,
+all 156,597 non-edge outputs retain matching metadata, and every held-out
+image/label/mask content fingerprint matches. Prior edge files and metadata are
+recoverable at `processed/_edge_v2_d5g8byof/previous/`. Current manifest SHA-256:
+`160705b5c2ba87051dbb2600f8db2d8f2863326575ed3847814195352d29705a`.
+Post-change auditing again passes all 5,025 labels / 4,679 boxes; add
+`--probe-ciou` to the audit command for the reproducible CPU diagnostic (also
+finite on the revised dataset). Ultralytics loads all 5,025 semantic images and
+4,679 boxes; the changed train cache was rebuilt, and the binary track passed
+its existing bounded 16-image-per-split loader smoke check.
+
+The full `build_dataset.py --verify` run also **passed for all 156,761 output
+images**, not just the synthetic layer or a ZJU sample. Current
+`verification.json` now covers real plus synthetic outputs and records the
+manifest hash above. Image decoding, masks/labels, expected file inventory,
+source accounting, AITEX mask coverage and split isolation pass; no positive
+masks were erased and both cross-split overlap counts are zero. The eight
+previously documented TILDA subpixel boxes remain warnings. Dataset totals and
+class counts are unchanged. All 23 preprocessing and six notebook regression
+tests pass, as do Ruff, Black and the AI environment's dependency check.
+
+This establishes **data readiness for a diagnostic v2 Colab run**, not a fix
+for GPU training instability. Re-upload the revised dataset; no new ZIP or
+checkpoint was created locally, and no accuracy improvement has been measured.
+
+**Loss finding: genuinely inconclusive, not a proven data-level bug.** The
+before-change audit scans all 5,025 semantic label files / 4,679 boxes: no zero or
+negative dimensions, out-of-range centers/sizes/corners, NaN or infinity.
+Classification-only files are outside this detector scan. Eight pre-existing
+TILDA train boxes are subpixel but strictly positive (minimum dimensions about
+0.8333 × 0.8340px); none are AITEX or synthetic. They were retained, not silently
+filtered or enlarged. CPU float32 CIoU forward/backward on all 4,342 train boxes
+with finite controlled predictions at strides 8/16/32 also remained finite.
+This does not reproduce full model activations, assignment, optimizer state or
+AMP on the failing Colab batch. Local reports live in `_sanity_check/`.
+
+[PyTorch's AMP troubleshooting guidance](https://docs.pytorch.org/tutorials/recipes/recipes/amp_recipe.html)
+describes checking suspected overflow regions in float32; its
+[AMP documentation](https://docs.pytorch.org/docs/stable/amp.html) notes FP16's
+limited range. This supports a **diagnostic hypothesis**, not a diagnosis of
+this run. Obtain v1 `run_metadata.json`, `pip-freeze.txt`, `args.yaml`,
+`results.csv` and, where possible, the checkpoint/failing batch. Compare identical
+GPU inputs in full precision and AMP before choosing a fix. No speculative
+label deletion, dependency upgrade, optimizer change or AMP toggle was applied.
 
 ### Reproduce, configure and evaluate
 
